@@ -13,6 +13,7 @@ import Pes from '../assets/Images/Pes.png'
 // Nike
 import Nike from '../assets/Images/Nike_logo.png'
 import NikeShoe from '../assets/Images/NIkeShoe.png'
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const [activeSlide, setActiveSlide] = useState(0);
@@ -81,35 +82,37 @@ const Hero = () => {
     }
   ];
 
-  const categories = [
-    { 
-      name: "Woman's Fashion", 
-      hasSubmenu: true,
-      subcategories: [
-        { name: "Dresses", items: ["Maxi Dresses", "Mini Dresses", "Evening Dresses", "Jumpsuits"] },
-        { name: "Tops", items: ["T-shirts", "Blouses", "Sweaters", "Cardigans"] },
-        { name: "Bottoms", items: ["Jeans", "Skirts", "Shorts", "Leggings"] },
-        { name: "Accessories", items: ["Handbags", "Jewelry", "Scarves", "Belts"] }
-      ]
-    },
-    { 
-      name: "Men's Fashion", 
-      hasSubmenu: true,
-      subcategories: [
-        { name: "Shirts", items: ["T-shirts", "Casual Shirts", "Formal Shirts", "Polo Shirts"] },
-        { name: "Bottoms", items: ["Jeans", "Trousers", "Shorts", "Track Pants"] },
-        { name: "Outerwear", items: ["Jackets", "Coats", "Sweaters", "Hoodies"] },
-        { name: "Accessories", items: ["Watches", "Belts", "Wallets", "Ties"] }
-      ]
-    },
-    { name: "Electronics", hasSubmenu: false },
-    { name: "Home & Lifestyle", hasSubmenu: false },
-    { name: "Medicine", hasSubmenu: false },
-    { name: "Sports & Outdoor", hasSubmenu: false },
-    { name: "Baby's & Toys", hasSubmenu: false },
-    { name: "Groceries & Pets", hasSubmenu: false },
-    { name: "Health & Beauty", hasSubmenu: false },
-  ];
+ const categories = [
+  { 
+    name: "Smartphones", 
+    hasSubmenu: true,
+    link: "/categories/smartphones",
+    subcategories: [
+      { name: "Android Phones", items: ["Samsung Galaxy", "Google Pixel", "OnePlus", "Xiaomi"] },
+      { name: "iPhones", items: ["iPhone 15 Pro", "iPhone 15", "iPhone 14", "iPhone SE"] },
+      { name: "Budget Phones", items: ["Under $200", "Under $400", "Mid-range", "Refurbished"] },
+      { name: "Gaming Phones", items: ["ROG Phone", "RedMagic", "Black Shark", "Razer Phone"] }
+    ]
+  },
+  { 
+    name: "Phone Accessories", 
+    hasSubmenu: true,
+    link: "/categories/accessories",
+    subcategories: [
+      { name: "Cases & Covers", items: ["Protective Cases", "Designer Cases", "Leather Cases", "Clear Cases"] },
+      { name: "Screen Protection", items: ["Tempered Glass", "Privacy Screens", "Blue Light Filters", "Anti-Glare"] },
+      { name: "Chargers", items: ["Wireless Chargers", "Fast Chargers", "Car Chargers", "Power Banks"] },
+      { name: "Audio", items: ["Headphones", "Earbuds", "Bluetooth Speakers", "Phone Stands"] }
+    ]
+  },
+  { name: "Tablets", hasSubmenu: false, link: "/categories/tablets" },
+  { name: "Smartwatches", hasSubmenu: false, link: "/categories/smartwatches" },
+  { name: "Wireless Earbuds", hasSubmenu: false, link: "/categories/earbuds" },
+  { name: "Phone Repairs", hasSubmenu: false, link: "/categories/repairs" },
+  { name: "Refurbished Phones", hasSubmenu: false, link: "/categories/refurbished" },
+  { name: "Phone Plans", hasSubmenu: false, link: "/categories/plans" },
+  { name: "Trade-In Program", hasSubmenu: false, link: "/categories/trade-in" },
+];
   
   useEffect(() => {
     // Initialize GSAP animation
@@ -252,17 +255,18 @@ const Hero = () => {
               <ul className="py-2 space-y-2">
                 {categories.map((category, index) => (
                   <li key={index}>
-                    <div 
-                      className="px-2 py-2 flex justify-between items-center hover:bg-gray-100 rounded cursor-pointer"
-                      onClick={() => toggleMobileDropdown(index)}
-                    >
-                      <span className="text-gray-800 text-sm">{category.name}</span>
-                      {category.hasSubmenu && (
-                        hoveredCategory === index 
-                          ? <ChevronDown size={16} className="text-gray-400" />
-                          : <ChevronRight size={16} className="text-gray-400" />
-                      )}
-                    </div>
+                    <Link 
+  to={category.link || '#'}
+  className="px-2 py-2 flex justify-between items-center hover:bg-gray-100 rounded cursor-pointer"
+  onClick={() => toggleMobileDropdown(index)}
+>
+  <span className="text-gray-800 text-sm">{category.name}</span>
+  {category.hasSubmenu && (
+    hoveredCategory === index 
+      ? <ChevronDown size={16} className="text-gray-400" />
+      : <ChevronRight size={16} className="text-gray-400" />
+  )}
+</Link>
                     
                     {/* Mobile Dropdown Menu */}
                     {category.hasSubmenu && hoveredCategory === index && (
@@ -272,12 +276,13 @@ const Hero = () => {
                             <div className="font-medium text-sm text-gray-700 mb-1">{subcat.name}</div>
                             <ul className="space-y-1 pl-2">
                               {subcat.items.map((item, itemIdx) => (
-                                <li 
-                                  key={itemIdx} 
-                                  className="text-xs text-gray-600 hover:text-blue-500 py-1 cursor-pointer"
-                                >
-                                  {item}
-                                </li>
+                              <Link
+  to={`/products/${item.toLowerCase().replace(/\s+/g, '-')}`}
+  key={itemIdx} 
+  className="text-xs text-gray-600 hover:text-blue-500 py-1 cursor-pointer block"
+>
+  {item}
+</Link>
                               ))}
                             </ul>
                           </div>
@@ -301,10 +306,10 @@ const Hero = () => {
                 onMouseEnter={() => handleCategoryHover(index)}
                 onMouseLeave={handleCategoryLeave}
               >
-                <div className={`px-6 py-2 flex justify-between items-center hover:bg-gray-100 hover:text-red-400 rounded cursor-pointer ${hoveredCategory === index ? 'bg-gray-100' : ''}`}>
-                  <span className="text-gray-800 text-sm">{category.name}</span>
-                  {category.hasSubmenu && <ChevronRight size={16} className="text-gray-400" />}
-                </div>
+               <Link to={category.link || '#'} className={`px-6 py-2 flex justify-between items-center hover:bg-gray-100 hover:text-red-400 rounded cursor-pointer ${hoveredCategory === index ? 'bg-gray-100' : ''}`}>
+  <span className="text-gray-800 text-sm">{category.name}</span>
+  {category.hasSubmenu && <ChevronRight size={16} className="text-gray-400" />}
+</Link>
                 
                 {/* Desktop Dropdown Menu */}
                 {category.hasSubmenu && hoveredCategory === index && (
@@ -315,12 +320,13 @@ const Hero = () => {
                           <div className="font-medium text-sm text-gray-800 mb-2 border-b pb-1">{subcat.name}</div>
                           <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
                             {subcat.items.map((item, itemIdx) => (
-                              <li 
-                                key={itemIdx} 
-                                className="text-xs text-gray-600 hover:text-red-500 cursor-pointer truncate"
-                              >
-                                {item}
-                              </li>
+                              <Link 
+  to={`/products/${item.toLowerCase().replace(/\s+/g, '-')}`}
+  key={itemIdx} 
+  className="text-xs text-gray-600 hover:text-red-500 cursor-pointer truncate block"
+>
+  {item}
+</Link>
                             ))}
                           </ul>
                         </div>
@@ -355,10 +361,13 @@ const Hero = () => {
                       <span className="text-xs sm:text-sm font-semibold">{banner.productLine}</span>
                     </div>
                     <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">{banner.title}</h2>
-                    <button className="flex items-center text-sm font-medium mx-auto sm:mx-0 group">
-                      <span>{banner.ctaText}</span>
-                      <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                    </button>
+                   <Link 
+  to={`/products/${banner.brand.toLowerCase()}`}
+  className="flex items-center text-sm font-medium mx-auto sm:mx-0 group"
+>
+  <span>{banner.ctaText}</span>
+  <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+</Link>
                   </div>
                   
                   <div className="w-full sm:w-1/2 flex justify-center sm:justify-end">

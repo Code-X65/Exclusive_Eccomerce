@@ -16,7 +16,10 @@ export default function ShoppingCart() {
       name: 'HI Gamepad',
       price: 550,
       quantity: 2,
-      image: product02,
+      image: product02, 
+    },
+    {
+      
     }
   ]);
   

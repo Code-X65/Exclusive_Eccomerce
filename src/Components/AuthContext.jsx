@@ -5,7 +5,7 @@ import { auth, authService } from '../Components/firebase';
 export const AuthContext = createContext();
 
 // Auth provider component
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, setIsLoading }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -14,20 +14,60 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = authService.onAuthStateChange((user) => {
       setCurrentUser(user);
       setLoading(false);
+      if (setIsLoading) {
+        setIsLoading(false);
+      }
     });
 
     // Clean up the listener on unmount
     return unsubscribe;
-  }, []);
+  }, [setIsLoading]);
+
+  // Wrapper functions that handle loading state
+  const signUpWithLoading = async (...args) => {
+    if (setIsLoading) setIsLoading(true);
+    try {
+      return await authService.createUser(...args);
+    } finally {
+      if (setIsLoading) setIsLoading(false);
+    }
+  };
+
+  const loginWithLoading = async (...args) => {
+    if (setIsLoading) setIsLoading(true);
+    try {
+      return await authService.signInUser(...args);
+    } finally {
+      if (setIsLoading) setIsLoading(false);
+    }
+  };
+
+  const googleSignInWithLoading = async (...args) => {
+    if (setIsLoading) setIsLoading(true);
+    try {
+      return await authService.signInWithGoogle(...args);
+    } finally {
+      if (setIsLoading) setIsLoading(false);
+    }
+  };
+
+  const logoutWithLoading = async (...args) => {
+    if (setIsLoading) setIsLoading(true);
+    try {
+      return await authService.signOutUser(...args);
+    } finally {
+      if (setIsLoading) setIsLoading(false);
+    }
+  };
 
   // Define all auth-related functions
   const value = {
     currentUser,
     isLoggedIn: !!currentUser,
-    signUp: authService.createUser,
-    login: authService.signInUser,
-    googleSignIn: authService.signInWithGoogle,
-    logout: authService.signOutUser,
+    signUp: signUpWithLoading,
+    login: loginWithLoading,
+    googleSignIn: googleSignInWithLoading,
+    logout: logoutWithLoading,
     updateProfile: authService.updateUserProfile,
     resetPassword: authService.resetPassword,
     sendVerificationEmail: authService.sendVerificationEmail

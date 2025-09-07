@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute, PublicOnlyRoute } from './Components/ProtectedRoute'
 import Navbar from './Components/Navbar'
@@ -18,28 +18,17 @@ import AuthProvider from './Components/AuthContext'
 
 
 const App = () => {
+  const [isLoading, setIsLoading] = useState(false)
   return (
     <>
-    {/* <Router>
-      <Navbar />
-    <Routes>
-
-    <Route path="/" element={<HomePage />} />
-    <Route path="/Signup" element={<SignUpPage />} />
-    <Route path="/Login" element={<LogInPage />} />
-    <Route path="/wishlist" element={<EcommerceWishlist />} />
-    <Route path="/shoppingcart" element={<ShoppingCart />} />
-    <Route path="/checkout" element={<CheckoutForm />} />
-    <Route path="/account" element={<AccountManagementPage />} />
-    <Route path="/about" element={<AboutPage />} />
-    <Route path="/contact" element={<ContactPage />} />
-    <Route path="/products" element={<ProductDetails />} />
-    <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Footer />  
-    </Router> */}
+     {/* Loading Spinner */}
+    {isLoading && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    )}
     <Router>
-      <AuthProvider> 
+      <AuthProvider setIsLoading={setIsLoading}>
       <Navbar />
         <Routes>
           {/* Public Routes */}

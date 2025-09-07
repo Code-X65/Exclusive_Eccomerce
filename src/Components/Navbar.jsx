@@ -14,6 +14,7 @@ const Navbar = () => {
   const handleProfile = () => {
     setProfile(!profile);
   };
+  const mobileMenuItemClass = "text-white hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2";
   
   // Handle clicking outside of dropdown
   useEffect(() => {
@@ -45,7 +46,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="bg-white border-b-1 border-gray-300">
+    <header className="bg-white border-b-1 border-gray-300 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
         <div className="flex justify-between h-16">
 
@@ -81,13 +82,13 @@ const Navbar = () => {
 
             </nav>
          
-          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
-              <div className="relative w-96">
+          <div className="hidden md:ml-6 md:flex md:items-center md:space-x-2 lg:space-x-4">
+             <div className="relative flex-1 max-w-md">
     <input 
-      type="text" 
-      placeholder="What are you looking for?" 
-      className="w-full py-2 pl-4 pr-10 rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
-    />
+  type="text" 
+  placeholder="What are you looking for?" 
+  className="w-full py-2 pl-3 pr-10 text-sm rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+/>
     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700">
       <Search />
     </div>
@@ -107,9 +108,9 @@ const Navbar = () => {
 
         {/* Dropdown menu with fixed positioning and animation */}
         <div
-          className={`absolute right-0 mt-2 w-56 bg-black/70 backdrop-blur-sm rounded-lg shadow-lg text-white z-50 transition-all duration-300 ${
-            profile ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
-          }`}
+         className={`absolute right-0 mt-2 w-48 lg:w-56 bg-black/70 backdrop-blur-sm rounded-lg shadow-lg text-white z-50 transition-all duration-300 ${
+  profile ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+}`}
         >
           <ul className="py-1">
            <Link to='/account'> <li className="flex items-center gap-3 px-4 py-2 hover:bg-black/40 hover:text-red-400 cursor-pointer transition-all duration-300">
@@ -147,7 +148,7 @@ const Navbar = () => {
           </div>
           
           {/* Mobile menu button */}
-          <div className="flex items-center sm:hidden">
+          <div className="flex items-center md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500"
@@ -169,54 +170,100 @@ const Navbar = () => {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      {isMenuOpen && (
-        <div className="sm:hidden">
+   {isMenuOpen && (
+  <>
+    {/* Dark overlay */}
+    <div 
+      className={`fixed inset-0 bg-black transition-opacity duration-300 z-40 ${
+        isMenuOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
+      }`}
+      onClick={() => setIsMenuOpen(false)}
+    />
+    
+    {/* Mobile menu */}
+    <div className={`md:hidden absolute top-full left-0 right-0 bg-black/[0.7] border-b border-gray-200 shadow-lg z-50 transform transition-all duration-300 ease-out ${
+      isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+    }`}>
+                         {/* Serach Section */}
+          <div className="px-4 py-3 ">
+  <div className="relative">
+    <input 
+      type="text" 
+      placeholder="What are you looking for?" 
+      className="w-full py-2 pl-4 pr-10 rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+    />
+    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700">
+      <Search />
+    </div>
+  </div>
+</div>
           <div className="pt-2 pb-3 space-y-1">
-            <Link to="/" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-              Home
-            </Link>
-            <Link to="/products" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-              Products
-            </Link>
-            <Link to="/categories" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-              Categories
-            </Link>
-            <Link to="/contact" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-              Contact
-            </Link>
-          </div>
+  <Link to="/" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.1s'}}>
+    Home
+  </Link>
+  <Link to="/products" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.15s'}}>
+    Products
+  </Link>
+  <Link to="/categories" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.2s'}}>
+    Categories
+  </Link>
+  <Link to="/contact" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.25s'}}>
+    Contact
+  </Link>
+</div>
+
+
           <div className="pt-4 pb-3 border-t border-gray-200">
             {isLoggedIn ? (
               <div className="space-y-1">
-                <Link to="/profile" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-                  {currentUser.displayName || 'My Account'}
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium"
-                >
-                  Log Out
-                </button>
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)} className={mobileMenuItemClass}>
+  {currentUser.displayName || 'My Account'}
+</Link>
+               <button
+  onClick={() => {
+    handleLogout();
+    setIsMenuOpen(false);
+  }}
+ className="w-full text-left text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2 animate-bounceIn"
+>
+  Log Out
+</button>
               </div>
             ) : (
               <div className="space-y-1">
-                <Link to="/login" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-                  Login
-                </Link>
-                <Link to="/signup" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium">
-                  Sign Up
-                </Link>
+               <Link to="/login" onClick={() => setIsMenuOpen(false)} className={mobileMenuItemClass}>
+  Login
+</Link>
+<Link to="/signup" onClick={() => setIsMenuOpen(false)} className={mobileMenuItemClass}>
+  Sign Up
+</Link>
               </div>
             )}
-            <Link to="/cart" className="text-gray-500 hover:bg-gray-50 hover:text-red-500 flex items-center pl-3 pr-4 py-2 text-base font-medium">
+           <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-white hover:bg-gray-50 hover:text-red-500 flex items-center pl-3 pr-4 py-2 text-base font-medium">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               Cart
             </Link>
           </div>
+ 
+
+{/* Mobile Wichlist and cart */}
+<div className="px-4 py-3 border-t border-gray-200">
+  <div className="flex items-center space-x-4">
+    <button className="flex items-center text-white hover:text-red-500">
+      <Heart className="w-6 h-6 mr-2" />
+      Wishlist
+    </button>
+    <button className="flex items-center text-white hover:text-blue-500">
+      <ShoppingBasket className="w-6 h-6 mr-2" />
+      Cart
+    </button>
+  </div>
+</div>
         </div>
-      )}
+  </>
+)}
     </header>
   );
 };

@@ -15,6 +15,7 @@ import ContactPage from './Pages/ContactPage'
 import ProductDetails from './Components/ProductDetails'
 import NotFound from './Components/NotFound'
 import AuthProvider from './Components/AuthContext'
+import ProductPage from './Pages/ProductPage'
 
 
 const App = () => {
@@ -37,7 +38,7 @@ const App = () => {
     <Route path="/Login" element={<LogInPage />} />
     <Route path="/about" element={<AboutPage />} />
      <Route path="/contact" element={<ContactPage />} />
-     <Route path="/products" element={<ProductDetails />} />
+     <Route path="/products" element={<ProductPage />} />
       <Route path="*" element={<NotFound />} />
 
         {/* <Route element={<PublicOnlyRoute />}>

@@ -16,7 +16,7 @@ const HomePage = () => {
       <Category />
       <BestSelling />
       <Categories />
-      <ProductExplore />
+  
       <NewArrival />    
       <CompanyFeatures />
     </div>

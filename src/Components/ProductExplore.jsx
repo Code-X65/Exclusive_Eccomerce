@@ -12,6 +12,32 @@ import product09 from '../assets/Images/products/Product09.png'
 import product10 from '../assets/Images/products/Product10.png'
 
 export default function ProductExplore() {
+  const [selectedCategory, setSelectedCategory] = useState('All')
+const [selectedPriceRange, setSelectedPriceRange] = useState('All');
+const [sidebarOpen, setSidebarOpen] = useState(false);
+const [cartItems, setCartItems] = useState([]);
+const [currentPage, setCurrentPage] = useState(1);
+const [shuffledProducts, setShuffledProducts] = useState([]);
+const productsPerPage = 4;
+
+const categories = [
+  'All',
+  'Gaming',
+  'Electronics',
+  'Furniture',
+  'Accessories',
+  'Monitors',
+  'Keyboards'
+];
+
+const priceRanges = [
+  { label: 'All', min: 0, max: Infinity },
+  { label: '$0 - $100', min: 0, max: 100 },
+  { label: '$100 - $300', min: 100, max: 300 },
+  { label: '$300 - $500', min: 300, max: 500 },
+  { label: '$500+', min: 500, max: Infinity }
+];
+
   // Countdown Timer State
   const [timeLeft, setTimeLeft] = useState({
     days: 3,
@@ -130,6 +156,138 @@ export default function ProductExplore() {
       reviews: 99
     }
   ];
+const filteredProducts = shuffledProducts.filter(product => {
+  const categoryMatch = selectedCategory === 'All' || 
+    (selectedCategory === 'Gaming' && (product.name.includes('Gamepad') || product.name.includes('Gaming'))) ||
+    (selectedCategory === 'Electronics' && (product.name.includes('Keyboard') || product.name.includes('Monitor'))) ||
+    (selectedCategory === 'Furniture' && product.name.includes('Chair')) ||
+    (selectedCategory === 'Accessories' && (product.name.includes('Gamepad') || product.name.includes('Keyboard'))) ||
+    (selectedCategory === 'Monitors' && product.name.includes('Monitor')) ||
+    (selectedCategory === 'Keyboards' && product.name.includes('Keyboard'));
+  
+  const priceRange = priceRanges.find(range => range.label === selectedPriceRange);
+  const priceMatch = product.salePrice >= priceRange.min && product.salePrice <= priceRange.max;
+  
+  return categoryMatch && priceMatch;
+});
+const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+const startIndex = (currentPage - 1) * productsPerPage;
+const endIndex = startIndex + productsPerPage;
+const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+const goToNextPage = () => {
+  if (currentPage < totalPages) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+const goToPrevPage = () => {
+  if (currentPage > 1) {
+    setCurrentPage(currentPage - 1);
+  }
+};
+
+const goToPage = (page) => {
+  setCurrentPage(page);
+};
+
+const addToCart = (product) => {
+  setCartItems(prev => {
+    const existing = prev.find(item => item.id === product.id);
+    if (existing) {
+      return prev.map(item => 
+        item.id === product.id 
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    }
+    return [...prev, { ...product, quantity: 1 }];
+  });
+};
+
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+const Sidebar = () => (
+  <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 lg:relative lg:translate-x-0 lg:block`}>
+    <div className="p-4 h-full overflow-y-auto">
+      {/* Close button for mobile */}
+      <div className="lg:hidden flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Filters</h3>
+        <button 
+          onClick={() => setSidebarOpen(false)}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Categories Filter */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">Categories</h3>
+        <div className="space-y-2">
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedCategory === category 
+                  ? 'bg-red-500 text-white' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Price Range Filter */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">Price Range</h3>
+        <div className="space-y-2">
+          {priceRanges.map(range => (
+            <button
+              key={range.label}
+              onClick={() => setSelectedPriceRange(range.label)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedPriceRange === range.label 
+                  ? 'bg-red-500 text-white' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cart Summary */}
+      <div className="border-t pt-4">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">Cart</h3>
+        <div className="text-sm text-gray-600">
+          {cartItems.length > 0 ? (
+            <div>
+              <p>{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</p>
+              <p className="font-medium">
+                ${cartItems.reduce((sum, item) => sum + (item.salePrice * item.quantity), 0).toFixed(2)}
+              </p>
+            </div>
+          ) : (
+            <p>Cart is empty</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 
   // Check for mobile/desktop view
   useEffect(() => {
@@ -143,26 +301,15 @@ export default function ProductExplore() {
     return () => window.removeEventListener('resize', checkWindowSize);
   }, []);
 
-  // Timer countdown effect
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prevTime => {
-        const newSeconds = prevTime.seconds - 1;
-        const newMinutes = newSeconds < 0 ? prevTime.minutes - 1 : prevTime.minutes;
-        const newHours = newMinutes < 0 ? prevTime.hours - 1 : prevTime.hours;
-        const newDays = newHours < 0 ? prevTime.days - 1 : prevTime.days;
+  setCurrentPage(1);
+}, [selectedCategory, selectedPriceRange]);
 
-        return {
-          days: newDays < 0 ? 0 : newDays,
-          hours: newHours < 0 ? 23 : newHours % 24,
-          minutes: newMinutes < 0 ? 59 : newMinutes % 60,
-          seconds: newSeconds < 0 ? 59 : newSeconds % 60
-        };
-      });
-    }, 1000);
+useEffect(() => {
+  setShuffledProducts(shuffleArray(products));
+}, []);
 
-    return () => clearInterval(timer);
-  }, []);
+ 
 
   // Calculate products to display based on screen size
   const productsPerView = () => {
@@ -257,110 +404,218 @@ export default function ProductExplore() {
   );
 
   // Product card component
-  const ProductCard = ({ product }) => (
-    <div className="min-w-[250px] sm:min-w-0 p-3 rounded-lg relative group bg-gray-50 hover:shadow-md transition-shadow duration-300">
-      <div className="bg-white p-2 rounded-md">
-        <div className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded">
+const ProductCard = ({ product }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+    addToCart(product);
+    setAddingToCart(false);
+  };
+
+  return (
+    <div 
+      className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Container */}
+      <div className="relative bg-gray-50 p-3 sm:p-4">
+        {/* Discount Badge */}
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-red-500 text-white text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md z-10">
           -{product.discount}%
         </div>
-        <div className="flex justify-end mb-2 space-x-2">
-          <button className="p-1 bg-white rounded-full hover:bg-gray-100">
-            <Heart size={16} className="text-gray-500" />
+        
+        {/* Action Buttons */}
+        <div className={`absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1 sm:gap-2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-0'} opacity-100 sm:opacity-0 group-hover:opacity-100`}>
+          <button className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-500 transition-colors">
+            <Heart size={12} className="sm:w-4 sm:h-4 text-gray-600" />
           </button>
-          <button className="p-1 bg-white rounded-full hover:bg-gray-100">
-            <Eye size={16} className="text-gray-500" />
+          <button className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors">
+            <Eye size={12} className="sm:w-4 sm:h-4 text-gray-600" />
           </button>
         </div>
-        <div className="flex justify-center mb-4">
+        
+        {/* Product Image */}
+        <div className="flex justify-center items-center h-20 sm:h-32 md:h-40">
           <img 
             src={product.image} 
             alt={product.name} 
-            className="h-24 sm:h-32 w-24 sm:w-32 object-contain" 
+            className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" 
           />
         </div>
       </div>
-      <div className="text-center mt-3">
-        <h3 className="font-medium text-xs sm:text-sm mb-1 line-clamp-2 h-10">{product.name}</h3>
-        <div className="flex justify-center items-center gap-2 mb-2">
-          <span className="text-red-500 font-medium text-sm sm:text-base">${product.salePrice}</span>
+      
+      {/* Product Info */}
+      <div className="p-2 sm:p-4">
+        <h3 className="font-medium text-xs sm:text-sm md:text-base mb-1 sm:mb-2 line-clamp-2 h-8 sm:h-10 text-gray-800 group-hover:text-gray-900 leading-tight">
+          {product.name}
+        </h3>
+        
+        {/* Price */}
+        <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+          <span className="text-red-500 font-bold text-sm sm:text-base md:text-lg">${product.salePrice}</span>
           <span className="text-gray-400 line-through text-xs sm:text-sm">${product.originalPrice}</span>
         </div>
-        <div className="flex justify-center items-center gap-2">
+        
+        {/* Rating */}
+        <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-4">
           <RatingStars rating={product.rating} />
           <span className="text-xs text-gray-500">({product.reviews})</span>
         </div>
-      </div>
-      <div className="mt-3 hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="w-full bg-black text-white text-xs sm:text-sm py-2 rounded hover:bg-gray-800">
-          Add To Cart
-        </button>
-      </div>
-      <div className="mt-3 sm:hidden">
-        <button className="w-full bg-black text-white text-xs sm:text-sm py-2 rounded hover:bg-gray-800">
-          Add To Cart
+        
+        {/* Add to Cart Button */}
+        <button 
+          onClick={handleAddToCart}
+          disabled={addingToCart}
+          className={`w-full py-1.5 sm:py-2.5 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 ${
+            addingToCart 
+              ? 'bg-gray-400 text-white cursor-not-allowed' 
+              : 'bg-black text-white hover:bg-red-500 hover:shadow-md transform hover:-translate-y-0.5'
+          }`}
+        >
+          {addingToCart ? (
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span className="hidden sm:inline">Adding...</span>
+              <span className="sm:hidden">...</span>
+            </div>
+          ) : (
+            <span>Add To Cart</span>
+          )}
         </button>
       </div>
     </div>
   );
+};
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 overflow-hidden">
-      {/* Header Section */}
-      <div className="flex items-center mb-4 sm:mb-6">
-        <div className="w-3 sm:w-5 h-8 sm:h-10 bg-red-500 rounded mr-2"></div>
-        <h2 className="text-md sm:text-md font-bold">Products</h2>
-      </div>
 
-      {/* Title and Timer Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-        <h1 className="text-2xl sm:text-4xl font-bold">Explore Our Product</h1>
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
-          {/* Timer Display */}
-          <TimerDisplay />
 
-          {/* Navigation Buttons */}
-          <div className="flex gap-2 ml-auto sm:ml-0">
+return (
+  <div className="flex min-h-screen bg-gray-50">
+    {/* Sidebar */}
+    <Sidebar />
+    
+    {/* Overlay for mobile */}
+    {sidebarOpen && (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        onClick={() => setSidebarOpen(false)}
+      />
+    )}
+
+    {/* Main Content */}
+    <div className="flex-1 lg:ml-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center">
             <button 
-              className="p-1 sm:p-2 border border-gray-300 rounded-full hover:bg-gray-100"
-              onClick={handlePrevious}
-              aria-label="Previous products"
+              className="lg:hidden p-2 mr-2 hover:bg-gray-100 rounded"
+              onClick={() => setSidebarOpen(true)}
             >
-              <ChevronLeft size={16} />
+              ☰
             </button>
-            <button 
-              className="p-1 sm:p-2 border border-gray-300 rounded-full hover:bg-gray-100"
-              onClick={handleNext}
-              aria-label="Next products"
-            >
-              <ChevronRight size={16} />
-            </button>
+            <div className="w-3 sm:w-5 h-8 sm:h-10 bg-red-500 rounded mr-2"></div>
+            <h2 className="text-md sm:text-md font-bold">Products</h2>
+          </div>
+          
+          {/* Results Count */}
+          <div className="text-sm text-gray-600 max-sm:hidden">
+            Showing {filteredProducts.length} of {products.length} products
           </div>
         </div>
-      </div>
 
-      {/* Products Section - Mobile Scrollable View */}
-      <div className="sm:hidden overflow-x-auto pb-4 -mx-4 px-4" ref={productContainerRef}>
-        <div className="flex gap-4 w-max">
-          {products.map((product) => (
+        {/* Title Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Explore Our Products</h1>
+            {selectedCategory !== 'All' && (
+              <p className="text-gray-600">Category: <span className="font-medium text-red-500">{selectedCategory}</span></p>
+            )}
+          </div>
+
+        </div>
+
+        {/* Products Section - Mobile Scrollable View */}
+        <div className="sm:hidden pb-4 -mx-4 px-4" ref={productContainerRef}>
+          <div className="flex flex-col gap-4 ">
+            {currentProducts.map((product) =>  (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+
+        {/* Products Section - Desktop Grid View */}
+        <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {currentProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
-      </div>
 
-      {/* Products Section - Desktop Grid View */}
-      <div className="hidden sm:grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+        {/* Empty State */}
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">📦</div>
+            <h3 className="text-xl font-medium text-gray-600 mb-2">No products found</h3>
+            <p className="text-gray-500">Try adjusting your filters to see more results</p>
+          </div>
+        )}
 
-      {/* View All Button */}
-      <div className="flex justify-center mt-6 sm:mt-8">
-        <button className="bg-red-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded text-sm sm:text-base hover:bg-red-600">
-          View All Products
-        </button>
+        {/* View All Button */}
+       {filteredProducts.length > productsPerPage && (
+  <div className="flex justify-center items-center mt-6 sm:mt-8 gap-2">
+    {/* Previous Button */}
+    <button 
+      onClick={goToPrevPage}
+      disabled={currentPage === 1}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+        currentPage === 1 
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      Prev
+    </button>
+    
+    {/* Page Numbers */}
+    <div className="flex gap-1">
+      {[...Array(totalPages)].map((_, index) => {
+        const page = index + 1;
+        return (
+          <button
+            key={page}
+            onClick={() => goToPage(page)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              currentPage === page
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {page}
+          </button>
+        );
+      })}
+    </div>
+    
+    {/* Next Button */}
+    <button 
+      onClick={goToNextPage}
+      disabled={currentPage === totalPages}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+        currentPage === totalPages 
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+      }`}
+    >
+      Next
+    </button>
+  </div>
+)}
       </div>
     </div>
-  );
+  </div>
+);
 }

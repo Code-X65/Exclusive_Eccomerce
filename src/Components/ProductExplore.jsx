@@ -18,7 +18,7 @@ const [sidebarOpen, setSidebarOpen] = useState(false);
 const [cartItems, setCartItems] = useState([]);
 const [currentPage, setCurrentPage] = useState(1);
 const [shuffledProducts, setShuffledProducts] = useState([]);
-const productsPerPage = 4;
+const productsPerPage = 16;
 
 const categories = [
   'All',

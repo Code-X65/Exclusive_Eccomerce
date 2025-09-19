@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef,} from 'react';
 import { Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../Firebase/Firebase';
+
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+
+import { db, auth } from './firebase';
 
 export default function ProductExplore() {
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -46,7 +50,7 @@ const priceRanges = [
   // Current visible products range
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 4 });
   const [isMobile, setIsMobile] = useState(false);
-
+const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState('');
@@ -86,18 +90,78 @@ const goToPage = (page) => {
   setCurrentPage(page);
 };
 
-const addToCart = (product) => {
-  setCartItems(prev => {
-    const existing = prev.find(item => item.id === product.id);
-    if (existing) {
-      return prev.map(item => 
-        item.id === product.id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    }
-    return [...prev, { ...product, quantity: 1 }];
-  });
+const addToCart = async (product) => {
+  if (!user) {
+    alert('Please log in to add items to cart');
+    return;
+  }
+
+  try {
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.salePrice,
+      image: product.image || '/api/placeholder/400/400',
+      quantity: 1,
+      selectedSize: 'M',
+      selectedColor: 'white',
+      addedAt: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, 'users', user.uid);
+    
+    // Use setDoc with merge to create document if it doesn't exist
+    await setDoc(userDocRef, {
+      cart: arrayUnion(cartItem)
+    }, { merge: true });
+
+    // Update local cart state for immediate UI feedback
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+
+    alert('Product added to cart successfully!');
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Failed to add product to cart. Please try again.');
+  }
+};
+
+const addToWishlist = async (product) => {
+  if (!user) {
+    alert('Please log in to add items to wishlist');
+    return;
+  }
+
+  try {
+    const wishlistItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.salePrice,
+      image: product.image || '/api/placeholder/400/400',
+      addedAt: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, 'users', user.uid);
+    
+    // Use setDoc with merge to create document if it doesn't exist
+    await setDoc(userDocRef, {
+      wishlist: arrayUnion(wishlistItem)
+    }, { merge: true });
+
+    alert('Product added to wishlist successfully!');
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    alert('Failed to add product to wishlist. Please try again.');
+  }
 };
 
 const shuffleArray = (array) => {
@@ -240,6 +304,13 @@ useEffect(() => {
 
   fetchProducts();
 }, []);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+  });
+  
+  return () => unsubscribe();
+}, []);
 
  
 
@@ -337,19 +408,99 @@ useEffect(() => {
 
   // Product card component
 const ProductCard = ({ product }) => {
-  const navigate= useNavigate();
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
- const handleViewDetails = () => {
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!user || !product) return;
+
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const wishlist = userData.wishlist || [];
+          setIsInWishlist(wishlist.some(item => item.productId === product.id));
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [user, product]);
+
+  const handleViewDetails = () => {
     navigate(`/product/${product.id}`);
   };
 
   const handleAddToCart = async () => {
     setAddingToCart(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-    addToCart(product);
+    await addToCart(product);
     setAddingToCart(false);
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      alert('Please log in to add items to wishlist');
+      return;
+    }
+
+    try {
+      setAddingToWishlist(true);
+
+      const wishlistItem = {
+        productId: product.id,
+        name: product.name,
+        price: product.salePrice,
+        image: product.image || '/api/placeholder/400/400',
+        addedAt: new Date().toISOString()
+      };
+
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // Create user document with wishlist
+        await setDoc(userDocRef, {
+          wishlist: [wishlistItem],
+          createdAt: new Date().toISOString()
+        });
+        setIsInWishlist(true);
+        alert('Product added to wishlist!');
+      } else {
+        const userData = userDoc.data();
+        const currentWishlist = userData.wishlist || [];
+        
+        if (isInWishlist) {
+          // Remove from wishlist
+          const updatedWishlist = currentWishlist.filter(item => item.productId !== product.id);
+          await updateDoc(userDocRef, {
+            wishlist: updatedWishlist
+          });
+          setIsInWishlist(false);
+          alert('Product removed from wishlist!');
+        } else {
+          // Add to wishlist
+          await updateDoc(userDocRef, {
+            wishlist: arrayUnion(wishlistItem)
+          });
+          setIsInWishlist(true);
+          alert('Product added to wishlist!');
+        }
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      alert('Failed to update wishlist. Please try again.');
+    } finally {
+      setAddingToWishlist(false);
+    }
   };
 
   return (
@@ -367,12 +518,28 @@ const ProductCard = ({ product }) => {
         
         {/* Action Buttons */}
         <div className={`absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1 sm:gap-2 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-0'} opacity-100 sm:opacity-0 group-hover:opacity-100`}>
-          <button className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-500 transition-colors">
-            <Heart size={12} className="sm:w-4 sm:h-4 text-gray-600" />
+          <button 
+            onClick={handleWishlistToggle}
+            disabled={addingToWishlist}
+            className={`p-1.5 sm:p-2 rounded-full shadow-md transition-colors ${
+              isInWishlist 
+                ? 'bg-red-50 border border-red-200 hover:bg-red-100' 
+                : 'bg-white hover:bg-red-50 hover:text-red-500'
+            } ${addingToWishlist ? 'cursor-not-allowed opacity-50' : ''}`}
+          >
+            {addingToWishlist ? (
+              <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Heart 
+                size={12} 
+                className={`sm:w-4 sm:h-4 ${isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} 
+              />
+            )}
           </button>
           <button
-          onClick={handleViewDetails}
-           className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors">
+            onClick={handleViewDetails}
+            className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors"
+          >
             <Eye size={12} className="sm:w-4 sm:h-4 text-gray-600" />
           </button>
         </div>

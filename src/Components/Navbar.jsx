@@ -98,8 +98,15 @@ const Navbar = () => {
             
  <div className="flex justify-center items-center gap-6 p-4 ">
       {/* Icon buttons */}
+      <Link to='/wishlist'>
+      
       <Heart className="w-6 h-6 text-gray-700 hover:text-red-500 cursor-pointer transition-colors" />
+      </Link>
+
+      <Link to="/cart">
+      
       <ShoppingBasket className="w-6 h-6 text-gray-700 hover:text-blue-500 cursor-pointer transition-colors" />
+      </Link>
       
       {/* Profile section with dropdown - using ref for click detection */}
       <div className="relative" ref={profileRef}>

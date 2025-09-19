@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs, query, limit } from 'firebase/firestore';
-import { db } from '../Firebase/Firebase';
+import { doc, getDoc, collection, getDocs, query, limit, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { db, auth } from './firebase';
 import { Star, Truck, RotateCcw, Heart, ShoppingCart, Eye, ArrowLeft, Loader2 } from 'lucide-react';
+
+import { onAuthStateChanged } from 'firebase/auth';
+
 
 export default function ProductDetails() {
   // Route uses "/product/:id" so map the `id` param to `productId` to keep existing variable names
   const { id: productId } = useParams();
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
+const [isInWishlist, setIsInWishlist] = useState(false);
   
   // State for product data
   const [product, setProduct] = useState(null);
@@ -28,6 +35,166 @@ export default function ProductDetails() {
     { name: 'red', class: 'bg-red-500' }
   ];
   const sizeOptions = ['XS', 'S', 'M', 'L', 'XL'];
+  
+const handleAddToCart = async () => {
+  if (!user) {
+    alert('Please log in to add items to cart');
+    return;
+  }
+
+  if (product.stockQuantity === 0) {
+    return;
+  }
+
+  try {
+    setAddingToCart(true);
+
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: productImages[0] || '/api/placeholder/400/400',
+      quantity: quantity,
+      selectedSize: selectedSize,
+      selectedColor: selectedColor,
+      addedAt: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, 'users', user.uid);
+    
+    // Use setDoc with merge to create document if it doesn't exist
+    await setDoc(userDocRef, {
+      cart: arrayUnion(cartItem)
+    }, { merge: true });
+
+    alert('Product added to cart successfully!');
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Failed to add product to cart. Please try again.');
+  } finally {
+    setAddingToCart(false);
+  }
+};
+const handleAddToCartRelated = async (product) => {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    alert('Please log in to add items to cart');
+    return;
+  }
+
+  try {
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0]?.data || product.images?.[0]?.url || '/api/placeholder/400/400',
+      quantity: 1,
+      selectedSize: 'M',
+      selectedColor: 'white',
+      addedAt: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    
+    // Use setDoc with merge to create document if it doesn't exist
+    await setDoc(userDocRef, {
+      cart: arrayUnion(cartItem)
+    }, { merge: true });
+
+    alert('Product added to cart successfully!');
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Failed to add product to cart. Please try again.');
+  }
+};
+const handleWishlistToggle = async () => {
+  if (!user) {
+    alert('Please log in to add items to wishlist');
+    return;
+  }
+
+  try {
+    setAddingToWishlist(true);
+
+    const wishlistItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: productImages[0] || '/api/placeholder/400/400',
+      addedAt: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // Create user document with wishlist
+      await setDoc(userDocRef, {
+        wishlist: [wishlistItem],
+        createdAt: new Date().toISOString()
+      });
+      setIsInWishlist(true);
+      alert('Product added to wishlist!');
+    } else {
+      const userData = userDoc.data();
+      const currentWishlist = userData.wishlist || [];
+      
+      if (isInWishlist) {
+        // Remove from wishlist
+        const updatedWishlist = currentWishlist.filter(item => item.productId !== product.id);
+        await updateDoc(userDocRef, {
+          wishlist: updatedWishlist
+        });
+        setIsInWishlist(false);
+        alert('Product removed from wishlist!');
+      } else {
+        // Add to wishlist
+        await updateDoc(userDocRef, {
+          wishlist: arrayUnion(wishlistItem)
+        });
+        setIsInWishlist(true);
+        alert('Product added to wishlist!');
+      }
+    }
+  } catch (error) {
+    console.error('Error updating wishlist:', error);
+    alert('Failed to update wishlist. Please try again.');
+  } finally {
+    setAddingToWishlist(false);
+  }
+};
+const handleAddToWishlistRelated = async (product) => {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    alert('Please log in to add items to wishlist');
+    return;
+  }
+
+  try {
+    const wishlistItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images?.[0]?.data || product.images?.[0]?.url || '/api/placeholder/400/400',
+      addedAt: new Date().toISOString()
+    };
+
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    
+    // Use setDoc with merge to create document if it doesn't exist
+    await setDoc(userDocRef, {
+      wishlist: arrayUnion(wishlistItem)
+    }, { merge: true });
+
+    alert('Product added to wishlist successfully!');
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    alert('Failed to add product to wishlist. Please try again.');
+  }
+};
+
 
   // Fetch product data
   useEffect(() => {
@@ -82,6 +249,34 @@ export default function ProductDetails() {
 
     fetchProduct();
   }, [productId]);
+
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+  });
+  
+  return () => unsubscribe(); // Cleanup subscription
+}, []);
+useEffect(() => {
+  const checkWishlistStatus = async () => {
+    if (!user || !product) return;
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const wishlist = userData.wishlist || [];
+        setIsInWishlist(wishlist.some(item => item.productId === product.id));
+      }
+    } catch (error) {
+      console.error('Error checking wishlist status:', error);
+    }
+  };
+
+  checkWishlistStatus();
+}, [user, product]);
 
   // Handle quantity change
   const handleQuantityChange = (change) => {
@@ -138,11 +333,11 @@ export default function ProductDetails() {
         Back
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Images Section */}
         <div className="space-y-4">
           {/* Main Image */}
-          <div className="bg-gray-50  rounded-lg flex justify-center items-center h-80 ">
+          <div className="bg-gray-50 p-8 rounded-lg flex justify-center items-center h-80">
             {productImages[activeImage] ? (
               <img 
                 src={productImages[activeImage]} 
@@ -150,7 +345,7 @@ export default function ProductDetails() {
                 className="max-h-full object-contain"
               />
             ) : (
-              <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+              <div className="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center">
                 <span className="text-gray-400">No Image</span>
               </div>
             )}
@@ -203,9 +398,14 @@ export default function ProductDetails() {
               {product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
             </span>
           </div>
-          
+          <div className='flex gap-4'>
           {/* Price */}
-          <div className="text-xl font-semibold">₦{product.price?.toLocaleString()}</div>
+          <div className="text-2xl font-bold">₦{product.price?.toLocaleString()}</div>
+
+          {/* Price */}
+          <div className="text-gray-400 line-through text-xs sm:text-sm">₦{product.originalPrice?.toLocaleString()}</div>
+
+          </div>
           
           {/* Description */}
           <p className="text-gray-600 text-sm">
@@ -276,20 +476,46 @@ export default function ProductDetails() {
               </button>
             </div>
             
-            <button 
-              className={`px-6 py-2 rounded-md transition ${
-                product.stockQuantity > 0
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              }`}
-              disabled={product.stockQuantity === 0}
-            >
-              {product.stockQuantity > 0 ? 'Buy Now' : 'Out of Stock'}
-            </button>
+          <button 
+  onClick={handleAddToCart}
+  disabled={product.stockQuantity === 0 || addingToCart}
+  className={`px-6 py-2 rounded-md transition flex items-center gap-2 ${
+    product.stockQuantity > 0 && !addingToCart
+      ? 'bg-red-500 text-white hover:bg-red-600'
+      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+  }`}
+>
+  {addingToCart ? (
+    <>
+      <Loader2 size={16} className="animate-spin" />
+      Adding...
+    </>
+  ) : (
+    <>
+      <ShoppingCart size={16} />
+      {product.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}
+    </>
+  )}
+</button>
             
-            <button className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 transition">
-              <Heart size={20} className="text-gray-600" />
-            </button>
+            <button 
+  onClick={handleWishlistToggle}
+  disabled={addingToWishlist}
+  className={`p-2 rounded-md border transition ${
+    isInWishlist 
+      ? 'border-red-500 bg-red-50 hover:bg-red-100' 
+      : 'border-gray-300 hover:bg-gray-50'
+  } ${addingToWishlist ? 'cursor-not-allowed opacity-50' : ''}`}
+>
+  {addingToWishlist ? (
+    <Loader2 size={20} className="text-gray-600 animate-spin" />
+  ) : (
+    <Heart 
+      size={20} 
+      className={isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600'} 
+    />
+  )}
+</button>
           </div>
           
           {/* Delivery Info */}
@@ -324,11 +550,15 @@ export default function ProductDetails() {
             <h2 className="text-xl font-semibold">Related Items</h2>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {relatedProducts.map((relatedProduct) => (
-              <RelatedProductCard key={relatedProduct.id} product={relatedProduct} />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+  {relatedProducts.map((relatedProduct) => (
+    <RelatedProductCard
+      key={relatedProduct.id}
+      product={relatedProduct}
+      handleAddToCartRelated={handleAddToCartRelated}
+    />
+  ))}
+</div>
         </div>
       )}
     </div>
@@ -336,9 +566,102 @@ export default function ProductDetails() {
 }
 
 // Updated Related Product Component
-function RelatedProductCard({ product }) {
+// Complete RelatedProductCard component with wishlist functionality
+function RelatedProductCard({ product, handleAddToCartRelated, handleAddToWishlistRelated }) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
+  const [user, setUser] = useState(null);
+  
+  // Check auth state for this component
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Check if product is in wishlist
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (!user || !product) return;
+
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const wishlist = userData.wishlist || [];
+          setIsInWishlist(wishlist.some(item => item.productId === product.id));
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    };
+
+    checkWishlistStatus();
+  }, [user, product]);
+
+  const handleWishlistToggle = async (e) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      alert('Please log in to add items to wishlist');
+      return;
+    }
+
+    try {
+      setAddingToWishlist(true);
+
+      const wishlistItem = {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0]?.data || product.images?.[0]?.url || '/api/placeholder/400/400',
+        addedAt: new Date().toISOString()
+      };
+
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // Create user document with wishlist
+        await setDoc(userDocRef, {
+          wishlist: [wishlistItem],
+          createdAt: new Date().toISOString()
+        });
+        setIsInWishlist(true);
+        alert('Product added to wishlist!');
+      } else {
+        const userData = userDoc.data();
+        const currentWishlist = userData.wishlist || [];
+        
+        if (isInWishlist) {
+          // Remove from wishlist
+          const updatedWishlist = currentWishlist.filter(item => item.productId !== product.id);
+          await updateDoc(userDocRef, {
+            wishlist: updatedWishlist
+          });
+          setIsInWishlist(false);
+          alert('Product removed from wishlist!');
+        } else {
+          // Add to wishlist
+          await updateDoc(userDocRef, {
+            wishlist: arrayUnion(wishlistItem)
+          });
+          setIsInWishlist(true);
+          alert('Product added to wishlist!');
+        }
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+      alert('Failed to update wishlist. Please try again.');
+    } finally {
+      setAddingToWishlist(false);
+    }
+  };
   
   const handleViewProduct = () => {
     navigate(`/product/${product.id}`);
@@ -370,13 +693,22 @@ function RelatedProductCard({ product }) {
           isHovered ? 'opacity-100' : ''
         }`}>
           <button 
-            className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Handle wishlist
-            }}
+            className={`p-2 rounded-full shadow-md transition ${
+              isInWishlist 
+                ? 'bg-red-50 border border-red-200 hover:bg-red-100' 
+                : 'bg-white hover:bg-gray-100'
+            } ${addingToWishlist ? 'cursor-not-allowed opacity-50' : ''}`}
+            onClick={handleWishlistToggle}
+            disabled={addingToWishlist}
           >
-            <Heart size={16} className="text-gray-600" />
+            {addingToWishlist ? (
+              <Loader2 size={16} className="text-gray-600 animate-spin" />
+            ) : (
+              <Heart 
+                size={16} 
+                className={isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600'} 
+              />
+            )}
           </button>
           <button 
             className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
@@ -423,7 +755,7 @@ function RelatedProductCard({ product }) {
             className="w-full py-2 bg-blue-500 text-white text-sm rounded flex items-center justify-center space-x-1 hover:bg-blue-600 transition"
             onClick={(e) => {
               e.stopPropagation();
-              // Handle add to cart
+              handleAddToCartRelated(product);
             }}
           >
             <ShoppingCart size={14} />

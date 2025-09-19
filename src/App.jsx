@@ -16,6 +16,9 @@ import ProductDetails from './Components/ProductDetails'
 import NotFound from './Components/NotFound'
 import AuthProvider from './Components/AuthContext'
 import ProductPage from './Pages/ProductPage'
+import CartPage from './Pages/CartPage'
+import WishlistPage from './Pages/WishlistPage'
+import CheckoutPage from './Pages/CheckoutPage'
 
 
 
@@ -49,9 +52,13 @@ const App = () => {
          {/* Private Routes */}
          <Route element={<ProtectedRoute />}>
             <Route path="/shoppingcart" element={<ShoppingCart />} />
-            <Route path="/wishlist" element={<EcommerceWishlist />} />
+            {/* <Route path="/wishlist" element={<EcommerceWishlist />} /> */}
              <Route path="/checkout" element={<CheckoutForm />} />
              <Route path="/account/*" element={<AccountManagementPage />} />
+             <Route path="/cart" element={<CartPage />} />
+             <Route path="/wishlist" element={<WishlistPage />} />
+             <Route path="/checkout" element={<CheckoutPage />} />
+
            
           </Route>
 

@@ -18,6 +18,7 @@ import AuthProvider from './Components/AuthContext'
 import ProductPage from './Pages/ProductPage'
 
 
+
 const App = () => {
   const [isLoading, setIsLoading] = useState(false)
   return (
@@ -40,6 +41,7 @@ const App = () => {
      <Route path="/contact" element={<ContactPage />} />
      <Route path="/products" element={<ProductPage />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/product/:id" element={<ProductDetails />} />
 
         {/* <Route element={<PublicOnlyRoute />}>
         </Route> */}

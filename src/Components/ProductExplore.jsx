@@ -1,15 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef,} from 'react';
 import { Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import product01 from '../assets/Images/products/Product01.png'
-import product02 from '../assets/Images/products/Product02.png'
-import product03 from '../assets/Images/products/Product03.png'
-import product04 from '../assets/Images/products/Product04.png'
-import product05 from '../assets/Images/products/Product05.png'
-import product06 from '../assets/Images/products/Product06.png'
-import product07 from '../assets/Images/products/Product07.png'
-import product08 from '../assets/Images/products/Product08.png'
-import product09 from '../assets/Images/products/Product09.png'
-import product10 from '../assets/Images/products/Product10.png'
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../Firebase/Firebase';
+import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProductExplore() {
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -53,117 +47,18 @@ const priceRanges = [
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 4 });
   const [isMobile, setIsMobile] = useState(false);
 
-  // Products data
-  const products = [
-    {
-      id: 1,
-      name: 'HAVIT HV-G92 Gamepad',
-      originalPrice: 180,
-      salePrice: 120,
-      discount: 40,
-      image: product01,
-      rating: 5,
-      reviews: 88
-    },
-    {
-      id: 2,
-      name: 'AK-900 Wired Keyboard',
-      originalPrice: 960,
-      salePrice: 650,
-      discount: 35,
-      image: product02,
-      rating: 4,
-      reviews: 75
-    },
-    {
-      id: 3,
-      name: 'IPS LCD Gaming Monitor',
-      originalPrice: 400,
-      salePrice: 370,
-      discount: 30,
-      image: product03,
-      rating: 5,
-      reviews: 99
-    },
-    {
-      id: 4,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product04,
-      rating: 4,
-      reviews: 99
-    },
-    {
-      id: 5,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product05,
-      rating: 5,
-      reviews: 99
-    },
-    {
-      id: 6,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product06,
-      rating: 5,
-      reviews: 99
-    },
-    {
-      id: 7,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product07,
-      rating: 5,
-      reviews: 99
-    },
-    {
-      id: 8,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product08,
-      rating: 5,
-      reviews: 99
-    },
-    {
-      id: 9,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product09,
-      rating: 5,
-      reviews: 99
-    },
-    {
-      id: 10,
-      name: 'S-Series Comfort Chair',
-      originalPrice: 400,
-      salePrice: 375,
-      discount: 25,
-      image: product10,
-      rating: 5,
-      reviews: 99
-    }
-  ];
+  const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState('');
+
 const filteredProducts = shuffledProducts.filter(product => {
   const categoryMatch = selectedCategory === 'All' || 
-    (selectedCategory === 'Gaming' && (product.name.includes('Gamepad') || product.name.includes('Gaming'))) ||
-    (selectedCategory === 'Electronics' && (product.name.includes('Keyboard') || product.name.includes('Monitor'))) ||
-    (selectedCategory === 'Furniture' && product.name.includes('Chair')) ||
-    (selectedCategory === 'Accessories' && (product.name.includes('Gamepad') || product.name.includes('Keyboard'))) ||
-    (selectedCategory === 'Monitors' && product.name.includes('Monitor')) ||
-    (selectedCategory === 'Keyboards' && product.name.includes('Keyboard'));
+    (selectedCategory === 'Gaming' && (product.name?.includes('Gamepad') || product.name?.includes('Gaming') || product.category === 'gaming')) ||
+    (selectedCategory === 'Electronics' && (product.name?.includes('Keyboard') || product.name?.includes('Monitor') || product.category === 'smartphone' || product.category === 'accessory')) ||
+    (selectedCategory === 'Furniture' && product.name?.includes('Chair')) ||
+    (selectedCategory === 'Accessories' && (product.name?.includes('Gamepad') || product.name?.includes('Keyboard') || product.category === 'accessory')) ||
+    (selectedCategory === 'Monitors' && product.name?.includes('Monitor')) ||
+    (selectedCategory === 'Keyboards' && product.name?.includes('Keyboard'));
   
   const priceRange = priceRanges.find(range => range.label === selectedPriceRange);
   const priceMatch = product.salePrice >= priceRange.min && product.salePrice <= priceRange.max;
@@ -309,6 +204,43 @@ useEffect(() => {
   setShuffledProducts(shuffleArray(products));
 }, []);
 
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const querySnapshot = await getDocs(collection(db, 'products'));
+      const productsData = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        productsData.push({
+          id: doc.id,
+          name: data.name,
+          originalPrice: data.price ? data.price * 1.2 : 0, // Simulate original price as 20% higher
+          salePrice: data.price || 0,
+          discount: 20, // Default discount
+          image: data.images && data.images.length > 0 ? (data.images[0].data || data.images[0].url) : null,
+          rating: 5, // Default rating
+          reviews: Math.floor(Math.random() * 100) + 10, // Random reviews
+          category: data.category,
+          stock: data.stockQuantity || data.stock || 0,
+          description: data.description
+        });
+      });
+      
+      setProducts(productsData);
+      setShuffledProducts(shuffleArray(productsData));
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProducts();
+}, []);
+
  
 
   // Calculate products to display based on screen size
@@ -405,8 +337,13 @@ useEffect(() => {
 
   // Product card component
 const ProductCard = ({ product }) => {
+  const navigate= useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+
+ const handleViewDetails = () => {
+    navigate(`/product/${product.id}`);
+  };
 
   const handleAddToCart = async () => {
     setAddingToCart(true);
@@ -433,18 +370,26 @@ const ProductCard = ({ product }) => {
           <button className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-500 transition-colors">
             <Heart size={12} className="sm:w-4 sm:h-4 text-gray-600" />
           </button>
-          <button className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors">
+          <button
+          onClick={handleViewDetails}
+           className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors">
             <Eye size={12} className="sm:w-4 sm:h-4 text-gray-600" />
           </button>
         </div>
         
         {/* Product Image */}
-        <div className="flex justify-center items-center h-20 sm:h-32 md:h-40">
-          <img 
-            src={product.image} 
-            alt={product.name} 
-            className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" 
-          />
+        <div className="flex justify-center items-center h-20 sm:h-32 md:h-40 cursor-pointer" onClick={handleViewDetails}>
+          {product.image ? (
+            <img 
+              src={product.image} 
+              alt={product.name} 
+              className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" 
+            />
+          ) : (
+            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-gray-400 text-xs sm:text-sm">No Image</span>
+            </div>
+          )}
         </div>
       </div>
       
@@ -456,8 +401,8 @@ const ProductCard = ({ product }) => {
         
         {/* Price */}
         <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-          <span className="text-red-500 font-bold text-sm sm:text-base md:text-lg">${product.salePrice}</span>
-          <span className="text-gray-400 line-through text-xs sm:text-sm">${product.originalPrice}</span>
+          <span className="text-red-500 font-bold text-sm sm:text-base md:text-lg">₦{product.salePrice?.toLocaleString()}</span>
+          <span className="text-gray-400 line-through text-xs sm:text-sm">₦{product.originalPrice?.toLocaleString()}</span>
         </div>
         
         {/* Rating */}
@@ -466,17 +411,26 @@ const ProductCard = ({ product }) => {
           <span className="text-xs text-gray-500">({product.reviews})</span>
         </div>
         
+        {/* Stock Status */}
+        {product.stock === 0 && (
+          <div className="text-xs text-red-600 mb-2">Out of Stock</div>
+        )}
+        
         {/* Add to Cart Button */}
         <button 
           onClick={handleAddToCart}
-          disabled={addingToCart}
+          disabled={addingToCart || product.stock === 0}
           className={`w-full py-1.5 sm:py-2.5 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 ${
-            addingToCart 
-              ? 'bg-gray-400 text-white cursor-not-allowed' 
-              : 'bg-black text-white hover:bg-red-500 hover:shadow-md transform hover:-translate-y-0.5'
+            product.stock === 0
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : addingToCart 
+                ? 'bg-gray-400 text-white cursor-not-allowed' 
+                : 'bg-black text-white hover:bg-red-500 hover:shadow-md transform hover:-translate-y-0.5'
           }`}
         >
-          {addingToCart ? (
+          {product.stock === 0 ? (
+            'Out of Stock'
+          ) : addingToCart ? (
             <div className="flex items-center justify-center gap-1 sm:gap-2">
               <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               <span className="hidden sm:inline">Adding...</span>
@@ -528,92 +482,117 @@ return (
           </div>
         </div>
 
-        {/* Title Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Explore Our Products</h1>
-            {selectedCategory !== 'All' && (
-              <p className="text-gray-600">Category: <span className="font-medium text-red-500">{selectedCategory}</span></p>
-            )}
-          </div>
-
-        </div>
-
-        {/* Products Section - Mobile Scrollable View */}
-        <div className="sm:hidden pb-4 -mx-4 px-4" ref={productContainerRef}>
-          <div className="flex flex-col gap-4 ">
-            {currentProducts.map((product) =>  (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-
-        {/* Products Section - Desktop Grid View */}
-        <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {currentProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-medium text-gray-600 mb-2">No products found</h3>
-            <p className="text-gray-500">Try adjusting your filters to see more results</p>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-red-500 mr-2" />
+            <span className="text-gray-600">Loading products...</span>
           </div>
         )}
 
-        {/* View All Button */}
-       {filteredProducts.length > productsPerPage && (
-  <div className="flex justify-center items-center mt-6 sm:mt-8 gap-2">
-    {/* Previous Button */}
-    <button 
-      onClick={goToPrevPage}
-      disabled={currentPage === 1}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-        currentPage === 1 
-          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-      }`}
-    >
-      Prev
-    </button>
-    
-    {/* Page Numbers */}
-    <div className="flex gap-1">
-      {[...Array(totalPages)].map((_, index) => {
-        const page = index + 1;
-        return (
-          <button
-            key={page}
-            onClick={() => goToPage(page)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              currentPage === page
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {page}
-          </button>
-        );
-      })}
-    </div>
-    
-    {/* Next Button */}
-    <button 
-      onClick={goToNextPage}
-      disabled={currentPage === totalPages}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-        currentPage === totalPages 
-          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-      }`}
-    >
-      Next
-    </button>
-  </div>
-)}
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-600">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-2 text-red-700 underline hover:no-underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Rest of your existing JSX content... */}
+        {!loading && !error && (
+          <>
+            {/* Title Section */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-4xl font-bold mb-2">Explore Our Products</h1>
+                {selectedCategory !== 'All' && (
+                  <p className="text-gray-600">Category: <span className="font-medium text-red-500">{selectedCategory}</span></p>
+                )}
+              </div>
+            </div>
+
+            {/* Products Section - Mobile Scrollable View */}
+            <div className="sm:hidden pb-4 -mx-4 px-4" ref={productContainerRef}>
+              <div className="flex flex-col gap-4 ">
+                {currentProducts.map((product) =>  (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </div>
+
+            {/* Products Section - Desktop Grid View */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {currentProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4">📦</div>
+                <h3 className="text-xl font-medium text-gray-600 mb-2">No products found</h3>
+                <p className="text-gray-500">Try adjusting your filters to see more results</p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {filteredProducts.length > productsPerPage && (
+              <div className="flex justify-center items-center mt-6 sm:mt-8 gap-2">
+                {/* Previous Button */}
+                <button 
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === 1 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Prev
+                </button>
+                
+                {/* Page Numbers */}
+                <div className="flex gap-1">
+                  {[...Array(totalPages)].map((_, index) => {
+                    const page = index + 1;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-red-500 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Next Button */}
+                <button 
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === totalPages 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   </div>

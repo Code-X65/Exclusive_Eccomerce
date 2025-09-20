@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 // Import your Firebase config - adjust path as needed
 import { db, auth } from '../Components/firebase';
+import { Link } from 'react-router-dom';
 
 const CartPage = () => {
   const [user, setUser] = useState(null);
@@ -416,6 +417,7 @@ const CartPage = () => {
                 </div>
 
                 {/* Checkout Button */}
+                <Link to="/checkout"> 
                 <button 
                   disabled={updating || cartItems.length === 0}
                   className="w-full bg-red-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-6"
@@ -429,6 +431,7 @@ const CartPage = () => {
                     'Proceed to Checkout'
                   )}
                 </button>
+                </Link>
 
                 {/* Continue Shopping */}
                 <button 

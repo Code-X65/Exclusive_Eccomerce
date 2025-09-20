@@ -16,6 +16,9 @@ const CheckoutPage = () => {
   const [currentStep, setCurrentStep] = useState(1); // 1: Info, 2: Payment, 3: Confirmation
 
   // Form data
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [useNewAddress, setUseNewAddress] = useState(false);
   const [shippingInfo, setShippingInfo] = useState({
     firstName: '',
     lastName: '',
@@ -29,6 +32,7 @@ const CheckoutPage = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank_transfer'
+  const [paystackLoaded, setPaystackLoaded] = useState(false);
 
   // Nigerian states for dropdown
   const nigerianStates = [
@@ -58,11 +62,12 @@ const CheckoutPage = () => {
     return () => unsubscribe();
   }, []);
 
-  // Fetch cart items when user changes
+  // Fetch cart items and saved addresses when user changes
   useEffect(() => {
-    const fetchCart = async () => {
+    const fetchUserData = async () => {
       if (!user) {
         setCartItems([]);
+        setSavedAddresses([]);
         setLoading(false);
         return;
       }
@@ -74,18 +79,41 @@ const CheckoutPage = () => {
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setCartItems(userData.cart || []);
+          
+          // Get saved addresses
+          const addresses = userData.addresses || [];
+          setSavedAddresses(addresses);
+          
+          // Auto-select default address if available
+          const defaultAddress = addresses.find(addr => addr.isDefault);
+          if (defaultAddress) {
+            setSelectedAddressId(defaultAddress.id);
+            setShippingInfo({
+              firstName: defaultAddress.firstName || '',
+              lastName: defaultAddress.lastName || '',
+              email: user.email || '',
+              phone: '',
+              address: defaultAddress.address || '',
+              city: defaultAddress.city || '',
+              state: defaultAddress.state || '',
+              zipCode: defaultAddress.zip || '',
+              country: defaultAddress.country === 'US' ? 'Nigeria' : defaultAddress.country || 'Nigeria'
+            });
+          }
         } else {
           setCartItems([]);
+          setSavedAddresses([]);
         }
       } catch (err) {
-        console.error('Error fetching cart:', err);
-        setError('Failed to load cart. Please try again.');
+        console.error('Error fetching user data:', err);
+        setError('Failed to load data. Please try again.');
         setCartItems([]);
+        setSavedAddresses([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchCart();
+    fetchUserData();
   }, [user]);
 
   // Calculate totals
@@ -102,8 +130,50 @@ const CheckoutPage = () => {
     }));
   };
 
+  // Handle address selection
+  const handleAddressSelection = (addressId) => {
+    if (addressId === 'new') {
+      setUseNewAddress(true);
+      setSelectedAddressId('');
+      setShippingInfo({
+        firstName: '',
+        lastName: '',
+        email: user?.email || '',
+        phone: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'Nigeria'
+      });
+    } else {
+      setUseNewAddress(false);
+      setSelectedAddressId(addressId);
+      const selectedAddress = savedAddresses.find(addr => addr.id === addressId);
+      if (selectedAddress) {
+        setShippingInfo({
+          firstName: selectedAddress.firstName || '',
+          lastName: selectedAddress.lastName || '',
+          email: user?.email || '',
+          phone: '',
+          address: selectedAddress.address || '',
+          city: selectedAddress.city || '',
+          state: selectedAddress.state || '',
+          zipCode: selectedAddress.zip || '',
+          country: selectedAddress.country === 'US' ? 'Nigeria' : selectedAddress.country || 'Nigeria'
+        });
+      }
+    }
+  };
+
   // Validate shipping form
   const validateShippingForm = () => {
+    // If using saved address, just check if one is selected
+    if (!useNewAddress && selectedAddressId) {
+      return true;
+    }
+
+    // If using new address, validate form fields
     const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state'];
     const missing = required.filter(field => !shippingInfo[field].trim());
     
@@ -130,27 +200,37 @@ const CheckoutPage = () => {
 
   // Handle Paystack payment
   const handlePaystackPayment = () => {
-    if (!window.PaystackPop) {
-      setError('Payment system is not loaded. Please refresh the page.');
+    if (!paystackLoaded) {
+      setError('Payment system is not loaded yet. Please wait a moment and try again.');
+      setProcessing(false);
       return;
     }
 
+    if (!window.PaystackPop) {
+      setError('Payment system failed to load. Please refresh the page.');
+      setProcessing(false);
+      return;
+    }
+
+    // Ensure we have a logged-in user (should be present before payment step)
+    const uidPart = user?.uid || 'guest';
+
     const handler = window.PaystackPop.setup({
-      key: 'pk_test_your_paystack_public_key', // Replace with your actual public key
+      key: 'pk_test_193ff585726726ec44aac5aeda26996b1fb5753b', // Replace with your actual public key
       email: shippingInfo.email,
-      amount: total * 100, // Paystack expects amount in kobo
+      amount: Math.round(total * 100), // Paystack expects amount in kobo
       currency: 'NGN',
-      ref: `order_${Date.now()}_${user.uid}`, // Generate unique reference
+      ref: `order_${Date.now()}_${uidPart}`, // Generate unique reference
       metadata: {
         custom_fields: [
           {
-            display_name: "Customer Name",
-            variable_name: "customer_name",
+            display_name: 'Customer Name',
+            variable_name: 'customer_name',
             value: `${shippingInfo.firstName} ${shippingInfo.lastName}`
           },
           {
-            display_name: "Phone Number",
-            variable_name: "phone_number",
+            display_name: 'Phone Number',
+            variable_name: 'phone_number',
             value: shippingInfo.phone
           }
         ]
@@ -166,6 +246,27 @@ const CheckoutPage = () => {
 
     handler.openIframe();
   };
+
+  // Load Paystack script dynamically
+  useEffect(() => {
+    const scriptId = 'paystack-inline-js';
+    if (document.getElementById(scriptId)) {
+      setPaystackLoaded(!!window.PaystackPop);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://js.paystack.co/v1/inline.js';
+    script.async = true;
+    script.onload = () => setPaystackLoaded(true);
+    script.onerror = () => setPaystackLoaded(false);
+    document.body.appendChild(script);
+
+    return () => {
+      // Do not remove script on unmount to allow caching; just leave it.
+    };
+  }, []);
 
   // Handle payment success
   const handlePaymentSuccess = async (response) => {
@@ -313,8 +414,7 @@ const CheckoutPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Paystack Script */}
-      <script src="https://js.paystack.co/v1/inline.js"></script>
+  {/* Paystack script is loaded dynamically via useEffect */}
       
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
@@ -388,126 +488,223 @@ const CheckoutPage = () => {
                   <h2 className="text-lg font-semibold text-gray-800">Shipping Information</h2>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingInfo.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Enter your first name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingInfo.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Enter your last name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      value={shippingInfo.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      value={shippingInfo.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="080xxxxxxxx"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingInfo.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Enter your full address"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingInfo.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Enter your city"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      State *
-                    </label>
-                    <select
-                      value={shippingInfo.state}
-                      onChange={(e) => handleInputChange('state', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                    >
-                      <option value="">Select a state</option>
-                      {nigerianStates.map(state => (
-                        <option key={state} value={state}>{state}</option>
+                {/* Address Selection */}
+                {savedAddresses.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-md font-medium text-gray-700 mb-3">Choose Shipping Address</h3>
+                    <div className="space-y-3">
+                      {savedAddresses.map((address) => (
+                        <div
+                          key={address.id}
+                          className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                            selectedAddressId === address.id
+                              ? 'border-red-500 bg-red-50'
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                          onClick={() => handleAddressSelection(address.id)}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                name="selectedAddress"
+                                value={address.id}
+                                checked={selectedAddressId === address.id}
+                                onChange={() => handleAddressSelection(address.id)}
+                                className="w-4 h-4 text-red-500 focus:ring-red-500 mr-3"
+                              />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-800">
+                                    {address.firstName} {address.lastName}
+                                  </span>
+                                  {address.isDefault && (
+                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                      Default
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {address.address}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  {address.city}, {address.state} {address.zip}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </select>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ZIP Code
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingInfo.zipCode}
-                      onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Optional"
-                    />
+                      {/* Add New Address Option */}
+                      <div
+                        className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                          useNewAddress
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                        onClick={() => handleAddressSelection('new')}
+                      >
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            name="selectedAddress"
+                            value="new"
+                            checked={useNewAddress}
+                            onChange={() => handleAddressSelection('new')}
+                            className="w-4 h-4 text-red-500 focus:ring-red-500 mr-3"
+                          />
+                          <span className="font-medium text-gray-800">+ Use a new address</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                )}
 
+                {/* New Address Form (shown when no saved addresses or "new" is selected) */}
+                {(savedAddresses.length === 0 || useNewAddress) && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Country
-                    </label>
-                    <input
-                      type="text"
-                      value={shippingInfo.country}
-                      readOnly
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                    />
+                    {savedAddresses.length > 0 && (
+                      <h3 className="text-md font-medium text-gray-700 mb-4">New Address Details</h3>
+                    )}
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          First Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingInfo.firstName}
+                          onChange={(e) => handleInputChange('firstName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Enter your first name"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Last Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingInfo.lastName}
+                          onChange={(e) => handleInputChange('lastName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Enter your last name"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          value={shippingInfo.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Enter your email"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          value={shippingInfo.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="080xxxxxxxx"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Address *
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingInfo.address}
+                          onChange={(e) => handleInputChange('address', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Enter your full address"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          City *
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingInfo.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Enter your city"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          State *
+                        </label>
+                        <select
+                          value={shippingInfo.state}
+                          onChange={(e) => handleInputChange('state', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                          <option value="">Select a state</option>
+                          {nigerianStates.map(state => (
+                            <option key={state} value={state}>{state}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ZIP Code
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingInfo.zipCode}
+                          onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="Optional"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Country
+                        </label>
+                        <input
+                          type="text"
+                          value={shippingInfo.country}
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Save Address Option */}
+                    {useNewAddress && (
+                      <div className="mt-4">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 text-red-500 focus:ring-red-500 rounded"
+                          />
+                          <span className="ml-2 text-sm text-gray-600">
+                            Save this address for future orders
+                          </span>
+                        </label>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             )}
 

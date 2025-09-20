@@ -53,11 +53,11 @@ const App = () => {
          <Route element={<ProtectedRoute />}>
             <Route path="/shoppingcart" element={<ShoppingCart />} />
             {/* <Route path="/wishlist" element={<EcommerceWishlist />} /> */}
-             <Route path="/checkout" element={<CheckoutForm />} />
+             <Route path="/checkout" element={<CheckoutPage />} />
              <Route path="/account/*" element={<AccountManagementPage />} />
              <Route path="/cart" element={<CartPage />} />
              <Route path="/wishlist" element={<WishlistPage />} />
-             <Route path="/checkout" element={<CheckoutPage />} />
+             
 
            
           </Route>

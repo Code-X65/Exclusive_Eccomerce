@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { ProtectedRoute, PublicOnlyRoute } from './Components/ProtectedRoute'
-import Navbar from './Components/Navbar'
+import { ProtectedRoute } from './Components/ProtectedRoute'
 import HomePage from './Pages/HomePage'
-import Footer from './Components/Footer'
+import BaseLayout from './Components/BaseLayout'
 import SignUpPage from './Pages/SignUpPage'
 import LogInPage from './Pages/LogInPage'
 import ShoppingCart from './Pages/ShopingCart'
@@ -35,41 +34,31 @@ const App = () => {
     )}
     <Router>
       <AuthProvider setIsLoading={setIsLoading}>
-      <Navbar />
         <Routes>
-          {/* Public Routes */}
-        <Route path="/" element={<HomePage />} /> 
-         <Route path="/Signup" element={<SignUpPage />} />
-    <Route path="/Login" element={<LogInPage />} />
-    <Route path="/about" element={<AboutPage />} />
-     <Route path="/contact" element={<ContactPage />} />
-     <Route path="/products" element={<ProductPage />} />
-      <Route path="*" element={<NotFound />} />
-      <Route path="/product/:id" element={<ProductDetails />} />
+          <Route element={<BaseLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="Signup" element={<SignUpPage />} />
+            <Route path="Login" element={<LogInPage />} />
+            <Route path="about" element={<AboutPage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="products" element={<ProductPage />} />
+            <Route path="product/:id" element={<ProductDetails />} />
 
-        {/* <Route element={<PublicOnlyRoute />}>
-        </Route> */}
-         
-         {/* Private Routes */}
-         <Route element={<ProtectedRoute />}>
-            <Route path="/shoppingcart" element={<ShoppingCart />} />
-            {/* <Route path="/wishlist" element={<EcommerceWishlist />} /> */}
-             <Route path="/checkout" element={<CheckoutPage />} />
-             <Route path="/account/*" element={<AccountManagementPage />} />
-             <Route path="/cart" element={<CartPage />} />
-             <Route path="/wishlist" element={<WishlistPage />} />
-             <Route path="/orders" element={<OrdersPage />} />
-             
+            <Route element={<ProtectedRoute />}>
+              <Route path="shoppingcart" element={<ShoppingCart />} />
+              <Route path="checkout" element={<CheckoutPage />} />
+              <Route path="account/*" element={<AccountManagementPage />} />
+              <Route path="cart" element={<CartPage />} />
+              <Route path="wishlist" element={<WishlistPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+            </Route>
 
-           
+            <Route path="not-found" element={<NotFound />} />
           </Route>
 
-             {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <Footer />
       </AuthProvider>
-
     </Router>
     </CartProvider>
     </>

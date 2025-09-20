@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react(),
      tailwindcss(),
   ],
-  base: 'Exclusive_Eccomerce',
+  base: '/Exclusive_Eccomerce/',
   server: {
     host: true
   }

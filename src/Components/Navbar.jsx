@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../Components/AuthContext';
 import { Heart, HeartMinus, LogOut, Search, ShoppingBag, ShoppingBasket, Star, User, UserCircle, XCircle } from 'lucide-react';
+import { useCart } from '../Components/CartContext';
 
 const Navbar = () => {
   const { currentUser, isLoggedIn, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const { getCartCount } = useCart();
+const cartCount = getCartCount();
   const [profile, setProfile] = useState(false);
   const profileRef = useRef(null);
   
@@ -103,10 +105,14 @@ const Navbar = () => {
       <Heart className="w-6 h-6 text-gray-700 hover:text-red-500 cursor-pointer transition-colors" />
       </Link>
 
-      <Link to="/cart">
-      
-      <ShoppingBasket className="w-6 h-6 text-gray-700 hover:text-blue-500 cursor-pointer transition-colors" />
-      </Link>
+      <Link to="/cart" className="relative">
+  <ShoppingBasket className="w-6 h-6 text-gray-700 hover:text-blue-500 cursor-pointer transition-colors" />
+  {cartCount > 0 && (
+    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+      {cartCount > 99 ? '99+' : cartCount}
+    </span>
+  )}
+</Link>
       
       {/* Profile section with dropdown - using ref for click detection */}
       <div className="relative" ref={profileRef}>
@@ -123,9 +129,9 @@ const Navbar = () => {
            <Link to='/account'> <li className="flex items-center gap-3 px-4 py-2 hover:bg-black/40 hover:text-red-400 cursor-pointer transition-all duration-300">
               <User className="w-5 h-5" /> Manage My Account
             </li></Link>
-            <li className="flex items-center gap-3 px-4 py-2 hover:bg-black/40 hover:text-red-400 cursor-pointer transition-all duration-300">
+          <Link to='/orders'>  <li className="flex items-center gap-3 px-4 py-2 hover:bg-black/40 hover:text-red-400 cursor-pointer transition-all duration-300">
               <ShoppingBag className="w-5 h-5" /> My Orders
-            </li>
+            </li></Link>
             <li className="flex items-center gap-3 px-4 py-2 hover:bg-black/40 hover:text-red-400 cursor-pointer transition-all duration-300">
               <XCircle className="w-5 h-5" /> My Cancellations
             </li>
@@ -247,25 +253,39 @@ const Navbar = () => {
               </div>
             )}
            <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-white hover:bg-gray-50 hover:text-red-500 flex items-center pl-3 pr-4 py-2 text-base font-medium">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              Cart
-            </Link>
+  <div className="relative mr-2">
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    </svg>
+    {cartCount > 0 && (
+      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+        {cartCount > 99 ? '99+' : cartCount}
+      </span>
+    )}
+  </div>
+  Cart
+</Link>
           </div>
  
 
 {/* Mobile Wichlist and cart */}
 <div className="px-4 py-3 border-t border-gray-200">
   <div className="flex items-center space-x-4">
-    <button className="flex items-center text-white hover:text-red-500">
+    <Link to="/wishlist" className="flex items-center text-white hover:text-red-500">
       <Heart className="w-6 h-6 mr-2" />
       Wishlist
-    </button>
-    <button className="flex items-center text-white hover:text-blue-500">
-      <ShoppingBasket className="w-6 h-6 mr-2" />
+    </Link>
+    <Link to="/cart" className="flex items-center text-white hover:text-blue-500 relative">
+      <div className="relative mr-2">
+        <ShoppingBasket className="w-6 h-6" />
+        {cartCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+            {cartCount > 99 ? '99+' : cartCount}
+          </span>
+        )}
+      </div>
       Cart
-    </button>
+    </Link>
   </div>
 </div>
         </div>

@@ -6,9 +6,7 @@ import HomePage from './Pages/HomePage'
 import Footer from './Components/Footer'
 import SignUpPage from './Pages/SignUpPage'
 import LogInPage from './Pages/LogInPage'
-import EcommerceWishlist from './Pages/Wistlist'
 import ShoppingCart from './Pages/ShopingCart'
-import CheckoutForm from './Components/ChectoutForm'
 import AccountManagementPage from './Pages/AccountManagementPage'
 import AboutPage from './Pages/AboutPage'
 import ContactPage from './Pages/ContactPage'
@@ -19,6 +17,8 @@ import ProductPage from './Pages/ProductPage'
 import CartPage from './Pages/CartPage'
 import WishlistPage from './Pages/WishlistPage'
 import CheckoutPage from './Pages/CheckoutPage'
+import OrdersPage from './Pages/OrdersPages'
+import { CartProvider } from './Components/CartContext';
 
 
 
@@ -26,6 +26,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false)
   return (
     <>
+    <CartProvider>
      {/* Loading Spinner */}
     {isLoading && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -57,6 +58,7 @@ const App = () => {
              <Route path="/account/*" element={<AccountManagementPage />} />
              <Route path="/cart" element={<CartPage />} />
              <Route path="/wishlist" element={<WishlistPage />} />
+             <Route path="/orders" element={<OrdersPage />} />
              
 
            
@@ -69,6 +71,7 @@ const App = () => {
       </AuthProvider>
 
     </Router>
+    </CartProvider>
     </>
   )
 }

@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './Components/ProtectedRoute'
 import HomePage from './Pages/HomePage'
-import BaseLayout from './Components/BaseLayout'
+import Navbar from './Components/Navbar'
+import Footer from './Components/Footer'
+import { Outlet } from 'react-router-dom'
 import SignUpPage from './Pages/SignUpPage'
 import LogInPage from './Pages/LogInPage'
 import ShoppingCart from './Pages/ShopingCart'
@@ -32,10 +34,17 @@ const App = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     )}
-    <Router>
+    <Router basename="/Exclusive_Eccomerce">
       <AuthProvider setIsLoading={setIsLoading}>
         <Routes>
-          <Route element={<BaseLayout />}>
+          {/* Inline layout using react-router Outlet so we don't depend on BaseLayout component file */}
+          <Route element={<>
+            <Navbar />
+            <main className="min-h-[calc(100vh-200px)]">
+              <Outlet />
+            </main>
+            <Footer />
+          </>}>
             <Route index element={<HomePage />} />
             <Route path="Signup" element={<SignUpPage />} />
             <Route path="Login" element={<LogInPage />} />

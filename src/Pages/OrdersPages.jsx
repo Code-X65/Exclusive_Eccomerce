@@ -124,7 +124,7 @@ const OrdersPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Please Sign In</h2>
           <p className="text-gray-600 mb-6">You need to be logged in to view your orders.</p>
           <button 
-            onClick={() => window.location.href = '/login'}
+            onClick={() => window.location.href = '/Exclusive_Eccomerce/login'}
             className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
           >
             Sign In
@@ -340,7 +340,7 @@ const OrdersPage = () => {
               }
             </p>
             <button 
-              onClick={() => window.location.href = '/products'}
+              onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
               className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
             >
               Start Shopping

@@ -167,7 +167,7 @@ const CartPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Please Sign In</h2>
           <p className="text-gray-600 mb-6">You need to be logged in to view your cart.</p>
           <button 
-            onClick={() => window.location.href = '/login'}
+            onClick={() => window.location.href = '/Exclusive_Eccomerce/login'}
             className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
           >
             Sign In
@@ -212,7 +212,7 @@ const CartPage = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
             <p className="text-gray-600 mb-8">Add some products to get started!</p>
             <button 
-              onClick={() => window.location.href = '/products'}
+              onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
               className="bg-red-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
             >
               Continue Shopping
@@ -435,7 +435,7 @@ const CartPage = () => {
 
                 {/* Continue Shopping */}
                 <button 
-                  onClick={() => window.location.href = '/products'}
+                  onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
                   className="w-full bg-gray-100 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                 >
                   Continue Shopping

@@ -254,7 +254,7 @@ const WishlistPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Please Sign In</h2>
           <p className="text-gray-600 mb-6">You need to be logged in to view your wishlist.</p>
           <button 
-            onClick={() => window.location.href = '/login'}
+            onClick={() => window.location.href = '/Exclusive_Eccomerce/login'}
             className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
           >
             Sign In
@@ -301,7 +301,7 @@ const WishlistPage = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Your wishlist is empty</h2>
             <p className="text-gray-600 mb-8">Save your favorite items for later!</p>
             <button 
-              onClick={() => window.location.href = '/products'}
+              onClick={() => window.location.href = 'Exclusive_Eccomerce/products'}
               className="bg-red-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
             >
               Explore Products
@@ -389,7 +389,7 @@ const WishlistPage = () => {
                 {/* Action Buttons Overlay */}
                 <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => window.location.href = `/product/${item.productId}`}
+                    onClick={() => window.location.href = `/Exclusive_Eccomerce/product/${item.productId}`}
                     className="p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-600 transition-colors"
                     title="View Details"
                   >
@@ -467,7 +467,7 @@ const WishlistPage = () => {
         {/* Continue Shopping */}
         <div className="text-center mt-12">
           <button 
-            onClick={() => window.location.href = '/products'}
+            onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
             className="bg-gray-100 text-gray-800 px-8 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
           >
             Continue Shopping

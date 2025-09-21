@@ -6,6 +6,102 @@ import { onAuthStateChanged } from 'firebase/auth';
 // Import your Firebase config - adjust path as needed
 import { db, auth } from '../Components/firebase';
 
+// Email service function to send order confirmation
+const sendOrderConfirmationEmail = async (orderData) => {
+  try {
+    // Check if EmailJS is loaded and initialized
+    if (!window.emailjs) {
+      throw new Error('EmailJS not loaded. Please refresh the page and try again.');
+    }
+
+    console.log('Preparing email data for order:', orderData.orderId);
+
+    // Prepare template parameters - keep it simple to avoid 418 errors
+    const templateParams = {
+      to_email: 'omoloyeamoss65@gmail.com', // Replace with your business email
+      customer_name: `${orderData.shippingInfo.firstName} ${orderData.shippingInfo.lastName}`,
+      customer_email: orderData.shippingInfo.email,
+      customer_phone: orderData.shippingInfo.phone || 'Not provided',
+      order_id: orderData.orderId,
+      payment_reference: orderData.paymentInfo.reference,
+      total_amount: `₦${orderData.orderSummary.total.toLocaleString()}`,
+      order_date: new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }),
+      order_time: new Date().toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      // Simplified customer address
+      customer_address: `${orderData.shippingInfo.address}, ${orderData.shippingInfo.city}, ${orderData.shippingInfo.state}`,
+      // Order summary
+      subtotal: `₦${orderData.orderSummary.subtotal.toLocaleString()}`,
+      shipping_cost: orderData.orderSummary.shipping === 0 ? 'FREE' : `₦${orderData.orderSummary.shipping.toLocaleString()}`,
+      tax_amount: `₦${orderData.orderSummary.tax.toLocaleString()}`,
+      items_count: orderData.items.length,
+      // Simple items list (avoid complex HTML in initial test)
+      items_summary: orderData.items.map(item => 
+        `${item.name} - Qty: ${item.quantity} - ₦${(item.price * item.quantity).toLocaleString()}`
+      ).join(' | ')
+    };
+
+    console.log('Sending email with parameters:', templateParams);
+
+    // Send email using EmailJS
+    const response = await window.emailjs.send(
+      'service_g4g9dcl',    // Replace with your EmailJS service ID
+      'template_7wjz6qi',   // Replace with your EmailJS template ID
+      templateParams
+      // Note: Don't pass the public key here, it should be initialized already
+    );
+    
+    console.log('✅ Order confirmation email sent successfully:', response);
+    return { success: true, response };
+
+  } catch (error) {
+    console.error('❌ Error sending order confirmation email:', error);
+    
+    // More specific error handling
+    if (error.status === 418) {
+      console.error('EmailJS 418 Error - Check your service ID, template ID, and template variables');
+    } else if (error.status === 400) {
+      console.error('EmailJS 400 Error - Invalid parameters or template configuration');
+    } else if (error.status === 403) {
+      console.error('EmailJS 403 Error - Check your public key and service permissions');
+    }
+    
+    return { success: false, error: error.message || 'Unknown email error' };
+  }
+};
+
+
+
+// Load EmailJS script
+const loadEmailJS = () => {
+  return new Promise((resolve, reject) => {
+    if (window.emailjs) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js'; // Updated to latest version
+    script.async = true;
+    script.onload = () => {
+      // Initialize EmailJS with your public key using the new method
+      window.emailjs.init({
+        publicKey: 'le_8hFfmXsk6tcrQf' // Replace with your actual EmailJS public key
+      });
+      resolve();
+    };
+    script.onerror = () => reject(new Error('Failed to load EmailJS'));
+    document.head.appendChild(script);
+  });
+};
+
 const CheckoutPage = () => {
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState([]);
@@ -115,6 +211,9 @@ const CheckoutPage = () => {
     };
     fetchUserData();
   }, [user]);
+  useEffect(() => {
+  loadEmailJS().catch(error => console.warn('Failed to load EmailJS:', error));
+}, []);
 
   // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -269,51 +368,75 @@ const CheckoutPage = () => {
   }, []);
 
   // Handle payment success
-  const handlePaymentSuccess = async (response) => {
+// REPLACE your existing handlePaymentSuccess function with this updated version:
+
+const handlePaymentSuccess = async (response) => {
+  try {
+    setProcessing(true);
+    setError('');
+
+    // Create order in Firestore
+    const orderData = {
+      userId: user.uid,
+      items: cartItems,
+      shippingInfo,
+      paymentInfo: {
+        method: paymentMethod,
+        reference: response.reference,
+        status: 'completed'
+      },
+      orderSummary: {
+        subtotal,
+        tax,
+        shipping,
+        total
+      },
+      status: 'processing',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    // Save order to Firestore
+    const orderRef = await addDoc(collection(db, 'orders'), orderData);
+    
+    // Add the order ID to the order data for email
+    const orderDataWithId = {
+      ...orderData,
+      orderId: orderRef.id
+    };
+
+    // Send order confirmation email
     try {
-      setProcessing(true);
-      setError('');
-
-      // Create order in Firestore
-      const orderData = {
-        userId: user.uid,
-        items: cartItems,
-        shippingInfo,
-        paymentInfo: {
-          method: paymentMethod,
-          reference: response.reference,
-          status: 'completed'
-        },
-        orderSummary: {
-          subtotal,
-          tax,
-          shipping,
-          total
-        },
-        status: 'processing',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-
-      // Save order to Firestore
-      const orderRef = await addDoc(collection(db, 'orders'), orderData);
+      console.log('Sending order confirmation email...');
+      const emailResult = await sendOrderConfirmationEmail(orderDataWithId);
       
-      // Clear user's cart
-      const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, { cart: [] });
-
-      // Update local state
-      setCartItems([]);
-      setSuccess(true);
-      setCurrentStep(3);
-
-    } catch (err) {
-      console.error('Error processing order:', err);
-      setError('Failed to process order. Please contact support.');
-    } finally {
-      setProcessing(false);
+      if (emailResult.success) {
+        console.log('Order confirmation email sent successfully');
+      } else {
+        console.warn('Failed to send order confirmation email:', emailResult.error);
+        // Don't fail the entire order process if email fails
+      }
+    } catch (emailError) {
+      console.error('Error sending order confirmation email:', emailError);
+      // Continue with order completion even if email fails
     }
-  };
+    
+    // Clear user's cart
+    const userDocRef = doc(db, 'users', user.uid);
+    await updateDoc(userDocRef, { cart: [] });
+
+    // Update local state
+    setCartItems([]);
+    setSuccess(true);
+    setCurrentStep(3);
+
+  } catch (err) {
+    console.error('Error processing order:', err);
+    setError('Failed to process order. Please contact support.');
+  } finally {
+    setProcessing(false);
+  }
+};
 
   // Handle checkout process
   const handleCheckout = async () => {

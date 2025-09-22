@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Image from '../assets/Images/login.png'; // You might need to change this image
+import Image from '../assets/Images/AppStore.png'; 
 import { authService, getAuthErrorMessage } from '../Components/firebase';
 
 const SignUpPage = () => {

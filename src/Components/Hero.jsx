@@ -241,7 +241,7 @@ const Hero = () => {
 
         {/* Mobile Categories Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden mobile-menu-container fixed inset-0 bg-black bg-opacity-30 z-50">
+          <div className="lg:hidden mobile-menu-container fixed inset-0 bg-black/[0.5] z-50">
             <div className="bg-white w-64 h-full overflow-y-auto p-4 animate-slide-right">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-lg">Categories</h3>

@@ -125,10 +125,10 @@ export default function BestSelling() {
       </div>
 
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Best Selling Products</h1>
+        <h1 className=" text-xl md:text-4xl font-bold">Best Selling Products</h1>
         
         <div className="flex items-center gap-4">
-          <div className="flex justify-center mt-8">
+          <div className="md:flex justify-center mt-8 hidden ">
         <button className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600">
           View All Products
         </button>

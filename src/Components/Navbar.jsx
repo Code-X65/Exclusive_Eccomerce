@@ -579,7 +579,7 @@ useEffect(() => {
           <div className="pt-4 pb-3 border-t border-gray-200">
             {isLoggedIn ? (
               <div className="space-y-1">
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)} className={mobileMenuItemClass}>
+                <Link to="/Account/profile" onClick={() => setIsMenuOpen(false)} className={mobileMenuItemClass}>
   {currentUser.displayName || 'My Account'}
 </Link>
                <button

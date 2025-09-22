@@ -1,35 +1,32 @@
 import React, { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { ProtectedRoute } from './Components/ProtectedRoute'
-import HomePage from './Pages/HomePage'
-import Navbar from './Components/Navbar'
-import Footer from './Components/Footer'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import HomePage from './pages/HomePage'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import { Outlet } from 'react-router-dom'
-import SignUpPage from './Pages/SignUpPage'
-import LogInPage from './Pages/LogInPage'
-import ShoppingCart from './Pages/ShopingCart'
-import AccountManagementPage from './Pages/AccountManagementPage'
-import AboutPage from './Pages/AboutPage'
-import ContactPage from './Pages/ContactPage'
-import ProductDetails from './Components/ProductDetails'
-import NotFound from './Components/NotFound'
-import AuthProvider from './Components/AuthContext'
-import ProductPage from './Pages/ProductPage'
-import CartPage from './Pages/CartPage'
-import WishlistPage from './Pages/WishlistPage'
-import CheckoutPage from './Pages/CheckoutPage'
-import OrdersPage from './Pages/OrdersPages'
-import { CartProvider } from './Components/CartContext';
-
-
+import SignUpPage from './pages/SignUpPage'
+import LogInPage from './pages/LogInPage'
+import ShoppingCart from './pages/ShopingCart'
+import AccountManagementPage from './pages/AccountManagementPage'
+import AboutPage from './pages/AboutPage'
+import ContactPage from './pages/ContactPage'
+import ProductDetails from './components/ProductDetails'
+import NotFound from './components/NotFound'
+import AuthProvider from './components/AuthContext'
+import ProductPage from './pages/ProductPage'
+import CartPage from './pages/CartPage'
+import WishlistPage from './pages/WishlistPage'
+import CheckoutPage from './pages/CheckoutPage'
+import OrdersPage from './pages/OrdersPages'
+import { CartProvider } from './components/CartContext';
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(false)
   return (
     <>
     <CartProvider>
-     {/* Loading Spinner */}
-    {isLoading && (
+     {isLoading && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
@@ -37,7 +34,6 @@ const App = () => {
     <Router basename="/Exclusive_Eccomerce">
       <AuthProvider setIsLoading={setIsLoading}>
         <Routes>
-          {/* Inline layout using react-router Outlet so we don't depend on BaseLayout component file */}
           <Route element={<>
             <Navbar />
             <main className="min-h-[calc(100vh-200px)]">

@@ -1,10 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Components/AuthContext';
 import { Heart, HeartMinus, LogOut, Search, ShoppingBag, ShoppingBasket, Star, User, UserCircle, XCircle } from 'lucide-react';
 import { useCart } from '../Components/CartContext';
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { db } from './firebase';
 
 const Navbar = () => {
+const [searchQuery, setSearchQuery] = useState('');
+const [searchSuggestions, setSuggestions] = useState([]);
+const [searchHistory, setSearchHistory] = useState([]);
+const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+const [isSearchFocused, setIsSearchFocused] = useState(false);
+const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+const searchRef = useRef(null);
+const searchDropdownRef = useRef(null);
+const navigate = useNavigate();
+
   const { currentUser, isLoggedIn, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { getCartCount } = useCart();
@@ -18,6 +30,15 @@ const cartCount = getCartCount();
   };
   const mobileMenuItemClass = "text-white hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2";
   
+
+    const handleLogout = async () => {
+    try {
+      await logout();
+      // Navigation will be handled by protected routes
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
   // Handle clicking outside of dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,16 +57,144 @@ const cartCount = getCartCount();
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [profile]);
-  
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Navigation will be handled by protected routes
-    } catch (error) {
-      console.error('Failed to log out', error);
+  // Load search history from localStorage
+useEffect(() => {
+  // For artifacts environment, we'll use sessionStorage or just in-memory
+  try {
+    const savedHistory = sessionStorage.getItem('searchHistory');
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+  } catch (error) {
+    // Fallback to empty array if storage fails
+    console.log('Storage not available, using in-memory history');
+  }
+}, []);
+
+// Fetch suggestions from database
+const fetchSuggestions = async (searchTerm) => {
+  if (!searchTerm.trim()) {
+    setSuggestions([]);
+    return;
+  }
+
+  setIsLoadingSuggestions(true);
+  try {
+    const productsRef = collection(db, 'products');
+    const q = query(
+      productsRef,
+      where('name', '>=', searchTerm),
+      where('name', '<=', searchTerm + '\uf8ff'),
+      limit(5)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const suggestions = [];
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      suggestions.push({
+        id: doc.id,
+        name: data.name,
+        category: data.category,
+        price: data.price
+      });
+    });
+    
+    setSuggestions(suggestions);
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    setSuggestions([]);
+  }
+  setIsLoadingSuggestions(false);
+};
+// Handle search input change
+const handleSearchChange = (e) => {
+  const value = e.target.value;
+  setSearchQuery(value);
+  
+  if (value.length > 0) {
+    fetchSuggestions(value);
+  } else {
+    setSuggestions([]);
+  }
+};
+
+// Handle search focus
+const handleSearchFocus = () => {
+  setIsSearchFocused(true);
+  setShowSearchDropdown(true);
+  if (searchQuery.length === 0 && searchHistory.length > 0) {
+    // Show search history when focused and no query
+    setSuggestions([]);
+  }
+};
+
+// Handle search blur
+
+const handleSearchBlur = () => {
+  setTimeout(() => {
+    setIsSearchFocused(false);
+    setShowSearchDropdown(false);
+  }, 300); // Increased from 200ms to 300ms
+};
+
+// Handle search submit
+
+const handleSearchSubmit = (query = searchQuery) => {
+  if (!query.trim()) return;
+  
+  // Save to search history (in-memory for artifacts)
+  const newHistory = [query.trim(), ...searchHistory.filter(item => item !== query.trim())].slice(0, 10);
+  setSearchHistory(newHistory);
+  
+  // Try to save to sessionStorage (works better in artifacts than localStorage)
+  try {
+    sessionStorage.setItem('searchHistory', JSON.stringify(newHistory));
+  } catch (error) {
+    console.log('Storage not available');
+  }
+  
+  // Clear search UI
+  setShowSearchDropdown(false);
+  setSearchQuery('');
+  
+  // Navigate to products page with search query
+  navigate(`/products?search=${encodeURIComponent(query)}`);
+};
+
+
+// Handle suggestion click
+const handleSuggestionClick = (suggestion) => {
+  if (typeof suggestion === 'string') {
+    // It's from search history
+    setSearchQuery(suggestion);
+    handleSearchSubmit(suggestion);
+  } else {
+    // It's a product suggestion - navigate to product page
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+    navigate(`/product/${suggestion.id}`);
+  }
+};
+
+// Handle click outside search dropdown
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+      setShowSearchDropdown(false);
     }
   };
+  
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+  
+
+
 
   return (
     <header className="bg-white border-b-1 border-gray-300 relative">
@@ -85,16 +234,118 @@ const cartCount = getCartCount();
             </nav>
          
           <div className="hidden md:ml-6 md:flex md:items-center md:space-x-2 lg:space-x-4">
-             <div className="relative flex-1 max-w-md">
-    <input 
-  type="text" 
-  placeholder="What are you looking for?" 
-  className="w-full py-2 pl-3 pr-10 text-sm rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
-/>
-    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700">
-      <Search />
-    </div>
+   <div className="relative flex-1 max-w-md" ref={searchDropdownRef}>
+  <input 
+    ref={searchRef}
+    type="text" 
+    value={searchQuery}
+    onChange={handleSearchChange}
+    onFocus={handleSearchFocus}
+    onBlur={handleSearchBlur}
+    onKeyPress={(e) => {
+      if (e.key === 'Enter') {
+        handleSearchSubmit();
+      }
+    }}
+    placeholder="What are you looking for?" 
+    className="w-full py-2 pl-3 pr-10 text-sm rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+  />
+  <div 
+    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 cursor-pointer"
+    onClick={() => handleSearchSubmit()}
+  >
+    <Search />
   </div>
+  
+ {/* Search Dropdown */}
+{showSearchDropdown && (
+  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+    {isLoadingSuggestions && (
+      <div className="px-4 py-2 text-sm text-gray-500 flex items-center">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+        Searching...
+      </div>
+    )}
+    
+    {/* Show search history when no query and history exists */}
+    {!isLoadingSuggestions && searchQuery.length === 0 && searchHistory.length > 0 && (
+      <>
+        <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
+          Recent Searches
+        </div>
+        {searchHistory.slice(0, 5).map((historyItem, index) => (
+          <div
+            key={`history-${index}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSuggestionClick(historyItem);
+            }}
+            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center border-b border-gray-50 last:border-b-0"
+          >
+            <Search size={14} className="mr-3 text-gray-400" />
+            <span>{historyItem}</span>
+          </div>
+        ))}
+      </>
+    )}
+    
+    {/* Show product suggestions when typing */}
+    {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length > 0 && (
+      <>
+        <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
+          Products
+        </div>
+        {searchSuggestions.map((suggestion) => (
+          <div
+            key={`product-${suggestion.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSuggestionClick(suggestion);
+            }}
+            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer border-b border-gray-50 last:border-b-0"
+          >
+            <div className="font-medium">{suggestion.name}</div>
+            <div className="text-xs text-gray-500">
+              {suggestion.category} • ₦{suggestion.price?.toLocaleString()}
+            </div>
+          </div>
+        ))}
+      </>
+    )}
+    
+    {/* No results message */}
+    {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length === 0 && (
+      <div className="px-4 py-2 text-sm text-gray-500">
+        No products found for "{searchQuery}"
+      </div>
+    )}
+    
+    {/* Search for query option */}
+    {searchQuery.length > 0 && (
+      <div
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSearchSubmit();
+        }}
+        className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 cursor-pointer border-t border-gray-200"
+      >
+        <Search size={14} className="inline mr-2" />
+        Search for "{searchQuery}"
+      </div>
+    )}
+    
+    {/* Show message when no history */}
+    {!isLoadingSuggestions && searchQuery.length === 0 && searchHistory.length === 0 && (
+      <div className="px-4 py-2 text-sm text-gray-500">
+        Start typing to search for products...
+      </div>
+    )}
+  </div>
+)}  
+</div>
             {isLoggedIn ? (
               <>
             
@@ -198,16 +449,115 @@ const cartCount = getCartCount();
       isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
     }`}>
                          {/* Serach Section */}
-          <div className="px-4 py-3 ">
+{/* Mobile Search Section */}
+<div className="px-4 py-3" ref={searchDropdownRef}>
   <div className="relative">
     <input 
+      ref={searchRef}
       type="text" 
+      value={searchQuery}
+      onChange={handleSearchChange}
+      onFocus={handleSearchFocus}
+      onBlur={handleSearchBlur}
+      onKeyPress={(e) => {
+        if (e.key === 'Enter') {
+          handleSearchSubmit();
+        }
+      }}
       placeholder="What are you looking for?" 
       className="w-full py-2 pl-4 pr-10 rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
     />
-    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700">
+    <div 
+      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 cursor-pointer"
+      onClick={() => handleSearchSubmit()}
+    >
       <Search />
     </div>
+    
+    {/* Mobile Search Dropdown */}
+    {showSearchDropdown && (
+      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+        {/* Same dropdown content as desktop */}
+        {isLoadingSuggestions && (
+          <div className="px-4 py-2 text-sm text-gray-500 flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+            Searching...
+          </div>
+        )}
+        
+        {!isLoadingSuggestions && searchQuery.length === 0 && searchHistory.length > 0 && (
+          <>
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+              Recent Searches
+            </div>
+            {searchHistory.slice(0, 5).map((historyItem, index) => (
+              <div
+                key={index}
+                onClick={() => handleSuggestionClick(historyItem)}
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+              >
+                <Search size={14} className="mr-2 text-gray-400" />
+                {historyItem}
+              </div>
+            ))}
+          </>
+        )}
+        
+        {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length > 0 && (
+          <>
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+              Products
+            </div>
+           {/* For product suggestions */}
+{searchSuggestions.map((suggestion) => (
+  <div
+    key={suggestion.id}
+    onClick={(e) => {
+      e.preventDefault();
+      handleSuggestionClick(suggestion);
+    }}
+    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+  >
+    <div className="font-medium">{suggestion.name}</div>
+    <div className="text-xs text-gray-500">
+      {suggestion.category} • ₦{suggestion.price?.toLocaleString()}
+    </div>
+  </div>
+))}
+
+{/* For search history */}
+{searchHistory.slice(0, 5).map((historyItem, index) => (
+  <div
+    key={index}
+    onClick={(e) => {
+      e.preventDefault();
+      handleSuggestionClick(historyItem);
+    }}
+    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+  >
+    <Search size={14} className="mr-2 text-gray-400" />
+    {historyItem}
+  </div>
+))}
+          </>
+        )}
+        
+        {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length === 0 && (
+          <div className="px-4 py-2 text-sm text-gray-500">
+            No products found for "{searchQuery}"
+          </div>
+        )}
+        
+        {searchQuery.length > 0 && (
+          <div
+            onClick={() => handleSearchSubmit()}
+            className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 cursor-pointer border-t border-gray-100"
+          >
+            Search for "{searchQuery}"
+          </div>
+        )}
+      </div>
+    )}
   </div>
 </div>
           <div className="pt-2 pb-3 space-y-1">

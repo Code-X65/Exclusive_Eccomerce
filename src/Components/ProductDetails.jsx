@@ -2,13 +2,42 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, collection, getDocs, query, limit, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import { Star, Truck, RotateCcw, Heart, ShoppingCart, Eye, ArrowLeft, Loader2 } from 'lucide-react';
+import { Star, Truck, RotateCcw, Heart, ShoppingCart, Eye, ArrowLeft, Loader2,  Share2, Copy, MessageCircle, Send } from 'lucide-react';
 
 import { onAuthStateChanged } from 'firebase/auth';
-
+const handleShareRelated = async (product) => {
+  const url = `${window.location.origin}/Exclusive_Eccomerce/product/${product.id}`;
+  
+  if (navigator.share && navigator.canShare) {
+    try {
+      await navigator.share({
+        title: product.name,
+        text: `Check out this product: ${product.name}`,
+        url: url,
+      });
+    } catch (error) {
+      // Fallback to copying link
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Product link copied to clipboard!');
+      } catch (copyError) {
+        alert('Unable to share. Please try again.');
+      }
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Product link copied to clipboard!');
+    } catch (error) {
+      alert('Unable to copy link. Please try again.');
+    }
+  }
+};
 
 export default function ProductDetails() {
   // Route uses "/product/:id" so map the `id` param to `productId` to keep existing variable names
+  const [showShareMenu, setShowShareMenu] = useState(false);
+const [shareUrl, setShareUrl] = useState('');
   const { id: productId } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -196,6 +225,87 @@ const handleAddToWishlistRelated = async (product) => {
 };
 
 
+
+const generateShareUrl = () => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/Exclusive_Eccomerce/product/${productId}`;
+};
+
+const handleShare = async () => {
+  const url = generateShareUrl();
+  setShareUrl(url);
+
+  // Check if Web Share API is supported (mobile devices)
+  if (navigator.share && navigator.canShare) {
+    try {
+      await navigator.share({
+        title: product.name,
+        text: `Check out this amazing product: ${product.name}`,
+        url: url,
+      });
+    } catch (error) {
+      console.log('Error sharing:', error);
+      // Fall back to custom share menu
+      setShowShareMenu(true);
+    }
+  } else {
+    // Show custom share menu for desktop
+    setShowShareMenu(true);
+  }
+};
+
+const copyToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    alert('Product link copied to clipboard!');
+    setShowShareMenu(false);
+  } catch (error) {
+    console.error('Failed to copy:', error);
+    alert('Failed to copy link. Please try again.');
+  }
+};
+
+const shareToWhatsApp = () => {
+  const message = `Check out this amazing product: ${product.name} - ₦${product.price?.toLocaleString()}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + ' ' + shareUrl)}`;
+  window.open(whatsappUrl, '_blank');
+  setShowShareMenu(false);
+};
+
+const shareToTwitter = () => {
+  const tweet = `Check out this amazing product: ${product.name} - ₦${product.price?.toLocaleString()}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(shareUrl)}`;
+  window.open(twitterUrl, '_blank');
+  setShowShareMenu(false);
+};
+
+const shareToFacebook = () => {
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+  window.open(facebookUrl, '_blank');
+  setShowShareMenu(false);
+};
+
+const shareToTelegram = () => {
+  const message = `Check out this amazing product: ${product.name}`;
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(message)}`;
+  window.open(telegramUrl, '_blank');
+  setShowShareMenu(false);
+};
+
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (showShareMenu && !event.target.closest('.share-menu')) {
+      setShowShareMenu(false);
+    }
+  };
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, [showShareMenu]);
+
+
   // Fetch product data
   useEffect(() => {
     const fetchProduct = async () => {
@@ -375,6 +485,38 @@ useEffect(() => {
               ))}
             </div>
           )}
+
+            {/* Description */}
+          <p className="text-gray-600 text-sm">
+            {product.description || 'No description available for this product.'}
+          </p>
+
+         {product.features && product.features.length > 0 && product.features[0] && (
+  <div className="mt-4 pt-4 border-t border-gray-100">
+    <h4 className="font-medium text-gray-700 mb-2">Key Features</h4>
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+        <thead>
+          <tr className="bg-red-500">
+            <th className="px-4 py-2 text-left text-sm font-medium text-white border-b">Feature</th>
+          </tr>
+        </thead>
+        <tbody>
+          {product.features.map((feature, index) => (
+            feature && (
+              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-4 py-2 text-sm text-gray-600">{feature}</td>
+              </tr>
+            )
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+
+
         </div>
         
         {/* Product Info Section */}
@@ -406,11 +548,10 @@ useEffect(() => {
           <div className="text-gray-400 line-through text-xs sm:text-sm">₦{product.originalPrice?.toLocaleString()}</div>
 
           </div>
-          
-          {/* Description */}
-          <p className="text-gray-600 text-sm">
-            {product.description || 'No description available for this product.'}
+           <p className="text-gray-600 text-sm">
+            {product.shortDescription || 'No description available for this product.'}
           </p>
+        
           
           {/* Colors */}
           <div>
@@ -498,24 +639,106 @@ useEffect(() => {
   )}
 </button>
             
+      <div className="flex gap-2">
+  <button 
+    onClick={handleWishlistToggle}
+    disabled={addingToWishlist}
+    className={`p-2 rounded-md border transition ${
+      isInWishlist 
+        ? 'border-red-500 bg-red-50 hover:bg-red-100' 
+        : 'border-gray-300 hover:bg-gray-50'
+    } ${addingToWishlist ? 'cursor-not-allowed opacity-50' : ''}`}
+  >
+    {addingToWishlist ? (
+      <Loader2 size={20} className="text-gray-600 animate-spin" />
+    ) : (
+      <Heart 
+        size={20} 
+        className={isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600'} 
+      />
+    )}
+  </button>
+
+  {/* Share Button */}
+  <div className="relative share-menu">
+    <button 
+      onClick={handleShare}
+      className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 transition"
+      title="Share product"
+    >
+      <Share2 size={20} className="text-gray-600" />
+    </button>
+
+    {/* Custom Share Menu */}
+    {showShareMenu && (
+      <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-64 p-4">
+        <h4 className="font-medium text-gray-800 mb-3">Share this product</h4>
+        
+        {/* Share URL Input */}
+        <div className="mb-4">
+          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+            <input 
+              type="text" 
+              value={shareUrl} 
+              readOnly 
+              className="flex-1 px-3 py-2 text-sm text-gray-600 bg-gray-50 border-none outline-none"
+            />
             <button 
-  onClick={handleWishlistToggle}
-  disabled={addingToWishlist}
-  className={`p-2 rounded-md border transition ${
-    isInWishlist 
-      ? 'border-red-500 bg-red-50 hover:bg-red-100' 
-      : 'border-gray-300 hover:bg-gray-50'
-  } ${addingToWishlist ? 'cursor-not-allowed opacity-50' : ''}`}
->
-  {addingToWishlist ? (
-    <Loader2 size={20} className="text-gray-600 animate-spin" />
-  ) : (
-    <Heart 
-      size={20} 
-      className={isInWishlist ? 'text-red-500 fill-red-500' : 'text-gray-600'} 
-    />
-  )}
-</button>
+              onClick={copyToClipboard}
+              className="px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 transition flex items-center gap-1"
+              title="Copy link"
+            >
+              <Copy size={14} />
+              <span className="text-xs">Copy</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Social Share Buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <button 
+            onClick={shareToWhatsApp}
+            className="flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm"
+          >
+            <MessageCircle size={16} />
+            WhatsApp
+          </button>
+          
+          <button 
+            onClick={shareToTwitter}
+            className="flex items-center gap-2 px-3 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition text-sm"
+          >
+            <Share2 size={16} />
+            Twitter
+          </button>
+          
+          <button 
+            onClick={shareToFacebook}
+            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+          >
+            <Share2 size={16} />
+            Facebook
+          </button>
+          
+          <button 
+            onClick={shareToTelegram}
+            className="flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm"
+          >
+            <Send size={16} />
+            Telegram
+          </button>
+        </div>
+        
+        <button 
+          onClick={() => setShowShareMenu(false)}
+          className="w-full mt-3 px-3 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+        >
+          Close
+        </button>
+      </div>
+    )}
+  </div>
+</div>
           </div>
           
           {/* Delivery Info */}
@@ -540,6 +763,30 @@ useEffect(() => {
               </div>
             </div>
           </div>
+          {/* Box Contents */}
+{product.boxContents && product.boxContents.length > 0 && product.boxContents[0] && (
+  <div className="mt-4 pt-4 border-t border-gray-100">
+    <h4 className="font-medium text-gray-700 mb-2">What's in the Box</h4>
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+        <thead>
+          <tr className="bg-red-500 ">
+            <th className="px-4 py-2 text-left text-sm font-medium text-white border-b">Item</th>
+          </tr>
+        </thead>
+        <tbody>
+          {product.boxContents.map((item, index) => (
+            item && (
+              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-4 py-2 text-sm text-gray-600">{item}</td>
+              </tr>
+            )
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
         </div>
       </div>
       
@@ -719,6 +966,16 @@ function RelatedProductCard({ product, handleAddToCartRelated, handleAddToWishli
           >
             <Eye size={16} className="text-gray-600" />
           </button>
+          <button 
+  className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleShareRelated(product);
+  }}
+  title="Share product"
+>
+  <Share2 size={16} className="text-gray-600" />
+</button>
         </div>
         
         {product.price && (

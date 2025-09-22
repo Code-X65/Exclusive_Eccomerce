@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef,} from 'react';
 import { Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
-
-import { Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Loader2, Share2, Copy, MessageCircle, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -17,7 +17,9 @@ const [cartItems, setCartItems] = useState([]);
 const [currentPage, setCurrentPage] = useState(1);
 const [shuffledProducts, setShuffledProducts] = useState([]);
 const productsPerPage = 16;
-
+const location = useLocation();
+const [searchQuery, setSearchQuery] = useState('');
+const [originalProducts, setOriginalProducts] = useState([]);
 const categories = [
   'All',
   'Gaming',
@@ -73,6 +75,66 @@ const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 const startIndex = (currentPage - 1) * productsPerPage;
 const endIndex = startIndex + productsPerPage;
 const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+const generateProductUrl = (productId) => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/product/${productId}`;
+};
+
+const shareProduct = async (product) => {
+  const url = generateProductUrl(product.id);
+  const shareData = {
+    title: product.name,
+    text: `Check out this amazing product: 
+     ${product.name} - ₦${product.salePrice?.toLocaleString()}`,
+    url: url,
+  };
+
+  // Check if Web Share API is supported (mobile devices)
+  if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+    try {
+      await navigator.share(shareData);
+    } catch (error) {
+      console.log('Error sharing:', error);
+      // Fall back to copying link
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Product link copied to clipboard!');
+      } catch (copyError) {
+        alert('Unable to share. Please try again.');
+      }
+    }
+  } else {
+    // Fallback for desktop - copy to clipboard
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Product link copied to clipboard!');
+    } catch (error) {
+      alert('Unable to copy link. Please try again.');
+    }
+  }
+};
+
+const shareToWhatsApp = (product) => {
+  const url = generateProductUrl(product.id);
+  const message = `Check out this amazing product: ${product.name} - ₦${product.salePrice?.toLocaleString()}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message + ' ' + url)}`;
+  window.open(whatsappUrl, '_blank');
+};
+
+const shareToTwitter = (product) => {
+  const url = generateProductUrl(product.id);
+  const tweet = `Check out this product: ${product.name} - ₦${product.salePrice?.toLocaleString()}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(url)}`;
+  window.open(twitterUrl, '_blank');
+};
+
+const shareToFacebook = (product) => {
+  const url = generateProductUrl(product.id);
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  window.open(facebookUrl, '_blank');
+};
+
 
 const goToNextPage = () => {
   if (currentPage < totalPages) {
@@ -163,6 +225,24 @@ const addToWishlist = async (product) => {
     alert('Failed to add product to wishlist. Please try again.');
   }
 };
+const handleSearch = (query) => {
+  if (!query || !query.trim()) {
+    setProducts(originalProducts);
+    setShuffledProducts(shuffleArray(originalProducts));
+    return;
+  }
+
+  const searchTerm = query.toLowerCase().trim();
+  const filtered = originalProducts.filter(product => 
+    product.name.toLowerCase().includes(searchTerm) ||
+    product.description?.toLowerCase().includes(searchTerm) ||
+    product.category?.toLowerCase().includes(searchTerm)
+  );
+  
+  setProducts(filtered);
+  setShuffledProducts(filtered);
+  setCurrentPage(1); // Reset to first page for search results
+};
 
 const shuffleArray = (array) => {
   const shuffled = [...array];
@@ -227,27 +307,62 @@ const Sidebar = () => (
         </div>
       </div>
 
-      {/* Cart Summary */}
-      <div className="border-t pt-4">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800">Cart</h3>
-        <div className="text-sm text-gray-600">
-          {cartItems.length > 0 ? (
-            <div>
-              <p>{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</p>
-              <p className="font-medium">
-                ${cartItems.reduce((sum, item) => sum + (item.salePrice * item.quantity), 0).toFixed(2)}
-              </p>
-            </div>
-          ) : (
-            <p>Cart is empty</p>
-          )}
-        </div>
-      </div>
     </div>
   </div>
 );
 
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const querySnapshot = await getDocs(collection(db, 'products'));
+      const productsData = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        productsData.push({
+          id: doc.id,
+          name: data.name,
+          originalPrice: data.price ? data.price * 1.2 : 0,
+          salePrice: data.price || 0,
+          discount: 20,
+          image: data.images && data.images.length > 0 ? (data.images[0].data || data.images[0].url) : null,
+          rating: 5,
+          reviews: Math.floor(Math.random() * 100) + 10,
+          category: data.category,
+          stock: data.stockQuantity || data.stock || 0,
+          description: data.description
+        });
+      });
+      
+      setOriginalProducts(productsData);
+      setProducts(productsData);
+      setShuffledProducts(shuffleArray(productsData));
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  fetchProducts();
+}, []);
+
+useEffect(() => {
+  const urlParams = new URLSearchParams(location.search);
+  const search = urlParams.get('search');
+  
+  if (search) {
+    setSearchQuery(search);
+    handleSearch(search);
+  } else {
+    setSearchQuery('');
+    // Reset to original products when no search
+    setProducts(originalProducts);
+    setShuffledProducts(shuffleArray(originalProducts));
+  }
+}, [location.search, originalProducts]);
   // Check for mobile/desktop view
   useEffect(() => {
     const checkWindowSize = () => {
@@ -413,6 +528,7 @@ const ProductCard = ({ product }) => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [addingToWishlist, setAddingToWishlist] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   // Check if product is in wishlist
   useEffect(() => {
@@ -435,6 +551,20 @@ const ProductCard = ({ product }) => {
 
     checkWishlistStatus();
   }, [user, product]);
+
+  // Close share menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showShareMenu && !event.target.closest('.share-menu-container')) {
+        setShowShareMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShareMenu]);
 
   const handleViewDetails = () => {
     navigate(`/product/${product.id}`);
@@ -503,9 +633,19 @@ const ProductCard = ({ product }) => {
     }
   };
 
+  const handleShare = (e) => {
+    e.stopPropagation();
+    setShowShareMenu(!showShareMenu);
+  };
+
+  const handleQuickShare = async (e) => {
+    e.stopPropagation();
+    await shareProduct(product);
+  };
+
   return (
     <div 
-      className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100"
+      className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -536,11 +676,85 @@ const ProductCard = ({ product }) => {
               />
             )}
           </button>
+          
           <button
             onClick={handleViewDetails}
             className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors"
           >
             <Eye size={12} className="sm:w-4 sm:h-4 text-gray-600" />
+          </button>
+
+          {/* Share Button - Desktop */}
+          <div className="hidden sm:block share-menu-container relative">
+            <button
+              onClick={handleShare}
+              className="p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:bg-green-50 hover:text-green-500 transition-colors"
+              title="Share product"
+            >
+              <Share2 size={12} className="sm:w-4 sm:h-4 text-gray-600" />
+            </button>
+
+            {/* Share Menu */}
+            {showShareMenu && (
+              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48 p-3">
+                <h5 className="font-medium text-gray-800 mb-2 text-xs">Share Product</h5>
+                
+                <div className="space-y-1">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shareToWhatsApp(product);
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  >
+                    <MessageCircle size={12} />
+                    WhatsApp
+                  </button>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shareToTwitter(product);
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs bg-blue-400 text-white rounded hover:bg-blue-500 transition-colors"
+                  >
+                    <Share2 size={12} />
+                    Twitter
+                  </button>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shareToFacebook(product);
+                      setShowShareMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    <Share2 size={12} />
+                    Facebook
+                  </button>
+                  
+                  <button 
+                    onClick={handleQuickShare}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                  >
+                    <Copy size={12} />
+                    Copy Link
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Share Button - Mobile (Quick Share) */}
+          <button
+            onClick={handleQuickShare}
+            className="sm:hidden p-1.5 bg-white rounded-full shadow-md hover:bg-green-50 hover:text-green-500 transition-colors"
+            title="Share product"
+          >
+            <Share2 size={12} className="text-gray-600" />
           </button>
         </div>
         
@@ -582,6 +796,17 @@ const ProductCard = ({ product }) => {
         {product.stock === 0 && (
           <div className="text-xs text-red-600 mb-2">Out of Stock</div>
         )}
+        
+        {/* Action Buttons - Mobile Bottom Actions */}
+        <div className="sm:hidden flex gap-2 mb-2">
+          <button 
+            onClick={handleQuickShare}
+            className="flex-1 py-1.5 px-2 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
+          >
+            <Share2 size={12} />
+            Share
+          </button>
+        </div>
         
         {/* Add to Cart Button */}
         <button 
@@ -643,10 +868,11 @@ return (
             <h2 className="text-md sm:text-md font-bold">Products</h2>
           </div>
           
-          {/* Results Count */}
-          <div className="text-sm text-gray-600 max-sm:hidden">
-            Showing {filteredProducts.length} of {products.length} products
-          </div>
+         {/* Results Count */}
+<div className="text-sm text-gray-600 max-sm:hidden">
+  Showing {filteredProducts.length} of {searchQuery ? shuffledProducts.length : products.length} products
+  {searchQuery && <span className="ml-2 text-red-500">• Search: "{searchQuery}"</span>}
+</div>
         </div>
 
         {/* Loading State */}
@@ -674,14 +900,35 @@ return (
         {!loading && !error && (
           <>
             {/* Title Section */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-4xl font-bold mb-2">Explore Our Products</h1>
-                {selectedCategory !== 'All' && (
-                  <p className="text-gray-600">Category: <span className="font-medium text-red-500">{selectedCategory}</span></p>
-                )}
-              </div>
-            </div>
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+  <div>
+    <h1 className="text-2xl sm:text-4xl font-bold mb-2">
+      {searchQuery ? `Search Results for "${searchQuery}"` : 'Explore Our Products'}
+    </h1>
+    {searchQuery && (
+      <p className="text-gray-600">
+        Found {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
+      </p>
+    )}
+    {selectedCategory !== 'All' && (
+      <p className="text-gray-600">Category: <span className="font-medium text-red-500">{selectedCategory}</span></p>
+    )}
+  </div>
+  
+  {searchQuery && (
+    <button
+      onClick={() => {
+        setSearchQuery('');
+        window.history.pushState({}, '', window.location.pathname);
+        setProducts(originalProducts);
+        setShuffledProducts(shuffleArray(originalProducts));
+      }}
+      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+    >
+      Clear Search
+    </button>
+  )}
+</div>
 
             {/* Products Section - Mobile Scrollable View */}
             <div className="sm:hidden pb-4 -mx-4 px-4" ref={productContainerRef}>
@@ -699,14 +946,34 @@ return (
               ))}
             </div>
 
-            {/* Empty State */}
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-400 text-6xl mb-4">📦</div>
-                <h3 className="text-xl font-medium text-gray-600 mb-2">No products found</h3>
-                <p className="text-gray-500">Try adjusting your filters to see more results</p>
-              </div>
-            )}
+           {/* Empty State */}
+{filteredProducts.length === 0 && (
+  <div className="text-center py-12">
+    <div className="text-gray-400 text-6xl mb-4">📦</div>
+    <h3 className="text-xl font-medium text-gray-600 mb-2">
+      {searchQuery ? `No results found for "${searchQuery}"` : 'No products found'}
+    </h3>
+    <p className="text-gray-500">
+      {searchQuery 
+        ? 'Try searching with different keywords or check your spelling' 
+        : 'Try adjusting your filters to see more results'
+      }
+    </p>
+    {searchQuery && (
+      <button
+        onClick={() => {
+          setSearchQuery('');
+          window.history.pushState({}, '', window.location.pathname);
+          setProducts(originalProducts);
+          setShuffledProducts(shuffleArray(originalProducts));
+        }}
+        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+      >
+        View All Products
+      </button>
+    )}
+  </div>
+)}
 
             {/* Pagination */}
             {filteredProducts.length > productsPerPage && (

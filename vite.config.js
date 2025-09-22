@@ -4,7 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: '/Exclusive_Eccomerce/',  // Add this back
   server: {
     host: true
   }

@@ -7,5 +7,9 @@ export default defineConfig({
   plugins: [react(),
      tailwindcss(),
   ],
-  base: '/Exclusive-Eccomerce/',
+   server: {
+    host: '0.0.0.0',
+    port: 5173, // Vite's default port
+  },
+  base: '/Exclusive_Eccomerce/',
 })

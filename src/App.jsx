@@ -34,7 +34,7 @@ const App = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     )}
-    <Router basename='/Exclusive-Eccomerce'>
+    <Router basename='/Exclusive_Eccomerce'>
       <AuthProvider setIsLoading={setIsLoading}>
         <Routes>
           {/* Inline layout using react-router Outlet so we don't depend on BaseLayout component file */}

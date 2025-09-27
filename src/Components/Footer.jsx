@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronUp, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import GooglePlay from '../assets/Images/GooglePlay.png'
 import AppStore from '../assets/Images/AppStore.png'
-import QR from '../assets/Images/Qr_code.png'
+import QR from '../assets/Images/qr-code.png'
 import App from '../App';
 
 

@@ -3,16 +3,16 @@ import { ChevronRight, ArrowRight, ChevronLeft, Menu, ChevronDown } from 'lucide
 import gsap from 'gsap';
 // Apple
 import Apple from '../assets/Images/appleLogo.png'
-import Iphone from '../assets/Images/heroIphone.png'
+
 // Samsung
 import Samsung from '../assets/Images/samsungLogo.png'
-import SamsungPhone from '../assets/Images/samsungPhone.png'
+
 // PlayStation
 import PlayStation from '../assets/Images/playstationLogo.png'
-import Pes from '../assets/Images/pes.png'
+
 // Nike
 import Nike from '../assets/Images/nikeLogo.png'
-import NikeShoe from '../assets/Images/nikeShoe.png'
+
 import { Link } from 'react-router-dom';
 
 const Hero = () => {
@@ -34,7 +34,7 @@ const Hero = () => {
       bgColor: "bg-black",
       textColor: "text-white",
       logoPlaceholder: Apple,
-      imagePlaceholder: Iphone
+      imagePlaceholder: 'https://i.ebayimg.com/images/g/3ZoAAeSwMf1o0Djm/s-l1600.webp'
     },
     {
       id: 2,
@@ -45,7 +45,7 @@ const Hero = () => {
       bgColor: "bg-blue-400",
       textColor: "text-white",
       logoPlaceholder: Samsung,
-      imagePlaceholder: SamsungPhone
+      imagePlaceholder: 'https://i.ebayimg.com/images/g/IuwAAOSwi2tmhlsa/s-l960.webp'
     },
     {
       id: 3,
@@ -56,7 +56,7 @@ const Hero = () => {
       bgColor: "bg-blue-600",
       textColor: "text-white",
       logoPlaceholder: PlayStation,
-      imagePlaceholder: Pes
+      imagePlaceholder: 'https://i.ebayimg.com/images/g/a0UAAeSwxGVo0WOw/s-l1600.webp'
     },
     {
       id: 4,
@@ -67,7 +67,7 @@ const Hero = () => {
       bgColor: "bg-orange-600",
       textColor: "text-white",
       logoPlaceholder: Nike,
-      imagePlaceholder: NikeShoe    
+      imagePlaceholder: 'https://i.ebayimg.com/images/g/B-4AAOSw0i5neGiV/s-l1600.webp'   
     },
     {
       id: 5,
@@ -78,7 +78,7 @@ const Hero = () => {
       bgColor: "bg-gray-800",
       textColor: "text-white",
       logoPlaceholder: "/api/placeholder/24/24",
-      imagePlaceholder: "/api/placeholder/280/240"
+      imagePlaceholder: "https://i.ebayimg.com/images/g/L6sAAOSwq6Vneasb/s-l960.webp"
     }
   ];
 

@@ -12,7 +12,7 @@ import PlayStation from '../assets/Images/playstationLogo.png'
 import Pes from '../assets/Images/pes.png'
 // Nike
 import Nike from '../assets/Images/nikeLogo.png'
-import NikeShoe from '../assets/Images/nIkeShoe.png'
+import NikeShoe from '../assets/Images/nikeShoe.png'
 import { Link } from 'react-router-dom';
 
 const Hero = () => {

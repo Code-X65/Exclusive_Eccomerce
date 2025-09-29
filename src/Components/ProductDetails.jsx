@@ -487,7 +487,7 @@
             )}
 
               {/* Description */}
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-sm hidden sm:block">
               {product.description || 'No description available for this product.'}
             </p>
 
@@ -745,6 +745,34 @@
                 </div>
               </div>
             </div>
+
+                        <p className="text-gray-600 text-sm hidden max-md:block">
+              {product.description || 'No description available for this product.'}
+            </p>
+
+          {product.features && product.features.length > 0 && product.features[0] && (
+    <div className="mt-4 pt-4 border-t border-gray-100 hidden max-md:block">
+      <h4 className="font-medium text-gray-700 mb-2">Key Features</h4>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+          <thead>
+            <tr className="bg-red-500">
+              <th className="px-4 py-2 text-left text-sm font-medium text-white border-b">Feature</th>
+            </tr>
+          </thead>
+          <tbody>
+            {product.features.map((feature, index) => (
+              feature && (
+                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-4 py-2 text-sm text-gray-600">{feature}</td>
+                </tr>
+              )
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
             {/* Box Contents */}
   {product.boxContents && product.boxContents.length > 0 && product.boxContents[0] && (
     <div className="mt-4 pt-4 border-t border-gray-100">

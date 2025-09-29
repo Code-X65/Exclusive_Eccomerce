@@ -2,16 +2,16 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronRight, ArrowRight, ChevronLeft, Menu, ChevronDown } from 'lucide-react';
 import gsap from 'gsap';
 // Apple
-import Apple from '../assets/Images/apple_logo.png'
+import Apple from '../assets/Images/appleLogo.png'
 import Iphone from '../assets/Images/heroIphone.png'
 // Samsung
-import Samsung from '../assets/Images/samsung_logo.png'
+import Samsung from '../assets/Images/samsungLogo.png'
 import SamsungPhone from '../assets/Images/samsungA23Phone.png'
 // PlayStation
-import PlayStation from '../assets/Images/playStation_logo.png'
+import PlayStation from '../assets/Images/playstationLogo.png'
 import Pes from '../assets/Images/pes.png'
 // Nike
-import Nike from '../assets/Images/nike_logo.png'
+import Nike from '../assets/Images/nikeLogo.png'
 import NikeShoe from '../assets/Images/nIkeShoe.png'
 import { Link } from 'react-router-dom';
 

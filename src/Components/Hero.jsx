@@ -6,7 +6,7 @@ import Apple from '../assets/Images/appleLogo.png'
 import Iphone from '../assets/Images/heroIphone.png'
 // Samsung
 import Samsung from '../assets/Images/samsungLogo.png'
-import SamsungPhone from '../assets/Images/samsungA23Phone.png'
+import SamsungPhone from '../assets/Images/samsungPhone.png'
 // PlayStation
 import PlayStation from '../assets/Images/playstationLogo.png'
 import Pes from '../assets/Images/pes.png'

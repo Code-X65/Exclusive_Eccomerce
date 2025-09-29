@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './Components/ProtectedRoute'
 import HomePage from './Pages/HomePage'
 import Navbar from './Components/Navbar'

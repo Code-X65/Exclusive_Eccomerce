@@ -492,7 +492,7 @@
             </p>
 
           {product.features && product.features.length > 0 && product.features[0] && (
-    <div className="mt-4 pt-4 border-t border-gray-100">
+    <div className="mt-4 pt-4 border-t border-gray-100 hidden sm:block">
       <h4 className="font-medium text-gray-700 mb-2">Key Features</h4>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg">

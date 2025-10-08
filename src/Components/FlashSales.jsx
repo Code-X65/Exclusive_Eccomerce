@@ -313,23 +313,23 @@ export default function FlashSales() {
   const TimerDisplay = () => (
     <div className="flex gap-1 sm:gap-2 text-center">
       <div className="flex flex-col items-center">
-        <span className="text-xs text-gray-500">Days</span>
-        <span className="text-lg sm:text-2xl font-bold">{formatNumber(timeLeft.days)}</span>
+<span className="text-xs text-gray-400">Days</span>
+<span className="text-lg sm:text-2xl font-bold text-gray-100">{formatNumber(timeLeft.days)}</span>
       </div>
-      <span className="text-lg sm:text-2xl font-bold">:</span>
+      <span className="text-lg sm:text-2xl font-bold text-gray-100">:</span>
       <div className="flex flex-col items-center">
-        <span className="text-xs text-gray-500">Hours</span>
-        <span className="text-lg sm:text-2xl font-bold">{formatNumber(timeLeft.hours)}</span>
+        <span className="text-xs text-gray-400">Hours</span>
+        <span className="text-lg sm:text-2xl font-bold text-gray-100">{formatNumber(timeLeft.hours)}</span>
       </div>
-      <span className="text-lg sm:text-2xl font-bold">:</span>
+      <span className="text-lg sm:text-2xl font-bold text-gray-100">:</span>
       <div className="flex flex-col items-center">
-        <span className="text-xs text-gray-500">Minutes</span>
-        <span className="text-lg sm:text-2xl font-bold">{formatNumber(timeLeft.minutes)}</span>
+        <span className="text-xs text-gray-400">Minutes</span>
+        <span className="text-lg sm:text-2xl font-bold text-gray-100">{formatNumber(timeLeft.minutes)}</span>
       </div>
-      <span className="text-lg sm:text-2xl font-bold">:</span>
+      <span className="text-lg sm:text-2xl font-bold text-gray-100">:</span>
       <div className="flex flex-col items-center">
-        <span className="text-xs text-gray-500">Seconds</span>
-        <span className="text-lg sm:text-2xl font-bold">{formatNumber(timeLeft.seconds)}</span>
+        <span className="text-xs text-gray-400">Seconds</span>
+        <span className="text-lg sm:text-2xl font-bold text-gray-100">{formatNumber(timeLeft.seconds)}</span>
       </div>
     </div>
   );
@@ -454,11 +454,11 @@ export default function FlashSales() {
 
     return (
       <div 
-        className="min-w-[250px] sm:min-w-0 p-3 rounded-lg relative group bg-gray-50 hover:shadow-md transition-shadow duration-300"
+        className="min-w-[250px] sm:min-w-0 p-3 rounded-lg relative group bg-gray-800 hover:shadow-xl transition-shadow duration-300 border border-gray-700"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="bg-white p-2 rounded-md relative">
+        <div className="bg-gray-900 p-2 rounded-md relative">
           <div className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded z-10">
             -{product.discount}%
           </div>
@@ -471,7 +471,7 @@ export default function FlashSales() {
               className={`p-1.5 rounded-full shadow-md transition-colors ${
                 isInWishlist 
                   ? 'bg-red-50 border border-red-200 hover:bg-red-100' 
-                  : 'bg-white hover:bg-red-50 hover:text-red-500'
+                  : 'bg-gray-700 hover:bg-red-900/30 hover:text-red-500'
               } ${addingToWishlist ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               {addingToWishlist ? (
@@ -486,7 +486,7 @@ export default function FlashSales() {
             
             <button
               onClick={handleViewDetails}
-              className="p-1.5 bg-white rounded-full shadow-md hover:bg-blue-50 hover:text-blue-500 transition-colors"
+              className="p-1.5 bg-gray-700 hover:bg-blue-900/30 rounded-full shadow-md  hover:text-blue-500 transition-colors"
             >
               <Eye size={16} className="text-gray-500" />
             </button>
@@ -495,7 +495,7 @@ export default function FlashSales() {
             <div className="hidden sm:block share-menu-container relative">
               <button
                 onClick={handleShare}
-                className="p-1.5 bg-white rounded-full shadow-md hover:bg-green-50 hover:text-green-500 transition-colors"
+                className="p-1.5 bg-gray-700 hover:bg-blue-900/30 rounded-full shadow-md  hover:text-green-500 transition-colors"
                 title="Share product"
               >
                 <Share2 size={16} className="text-gray-500" />
@@ -503,8 +503,8 @@ export default function FlashSales() {
 
               {/* Share Menu */}
               {showShareMenu && (
-                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48 p-3">
-                  <h5 className="font-medium text-gray-800 mb-2 text-xs">Share Product</h5>
+                <div className="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 w-48 p-3">
+  <h5 className="font-medium text-gray-100 mb-2 text-xs">Share Product</h5>
                   
                   <div className="space-y-1">
                     <button 
@@ -573,21 +573,21 @@ export default function FlashSales() {
                 className="h-24 sm:h-32 w-24 sm:w-32 object-contain transition-transform duration-300 group-hover:scale-105" 
               />
             ) : (
-              <div className="h-24 sm:h-32 w-24 sm:w-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400 text-xs">No Image</span>
+             <div className="h-24 sm:h-32 w-24 sm:w-32 bg-gray-700 rounded-lg flex items-center justify-center">
+  <span className="text-gray-500 text-xs">No Image</span>
               </div>
             )}
           </div>
         </div>
         <div className="text-center mt-3">
-          <h3 className="font-medium text-xs sm:text-sm mb-1 line-clamp-2 h-10">{product.name}</h3>
+          <h3 className="font-medium text-xs sm:text-sm mb-1 line-clamp-2 h-10 text-gray-100">{product.name}</h3>
           <div className="flex justify-center items-center gap-2 mb-2">
             <span className="text-red-500 font-medium text-sm sm:text-base">₦{product.salePrice?.toLocaleString()}</span>
             <span className="text-gray-400 line-through text-xs sm:text-sm">₦{product.originalPrice?.toLocaleString()}</span>
           </div>
           <div className="flex justify-center items-center gap-2 mb-2">
             <RatingStars rating={product.rating} />
-            <span className="text-xs text-gray-500">({product.reviews})</span>
+            <span className="text-xs text-gray-400">({product.reviews})</span>
           </div>
           
           {/* Stock Status */}
@@ -599,7 +599,7 @@ export default function FlashSales() {
           <div className="sm:hidden mb-2">
             <button 
               onClick={handleQuickShare}
-              className="w-full py-1.5 px-2 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-1"
+             className="w-full py-1.5 px-2 bg-gray-700 text-gray-200 rounded text-xs font-medium hover:bg-gray-600 transition-colors flex items-center justify-center gap-1"
             >
               <Share2 size={12} />
               Share
@@ -637,16 +637,16 @@ export default function FlashSales() {
   };
 
    return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 overflow-hidden">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 overflow-hidden bg-gray-900">
       {/* Header Section */}
       <div className="flex items-center mb-4 sm:mb-6">
         <div className="w-3 sm:w-5 h-8 sm:h-10 bg-red-500 rounded mr-2"></div>
-        <h2 className="text-xl sm:text-2xl font-bold">Today's</h2>
+       <h2 className="text-xl sm:text-2xl font-bold text-gray-100">Today's</h2>
       </div>
 
       {/* Title and Timer Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-        <h1 className="text-2xl sm:text-4xl font-bold">Flash Sales</h1>
+  <h1 className="text-2xl sm:text-4xl font-bold text-gray-100">Flash Sales</h1>
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           {/* Timer Display */}
@@ -655,14 +655,14 @@ export default function FlashSales() {
           {/* Navigation Buttons */}
           <div className="flex gap-2 ml-auto sm:ml-0">
             <button 
-              className="p-1 sm:p-2 border border-gray-300 rounded-full hover:bg-gray-100"
+              className="p-1 sm:p-2 border border-gray-700 rounded-full hover:bg-gray-800 text-gray-300"
               onClick={handlePrevious}
               aria-label="Previous products"
             >
               <ChevronLeft size={16} />
             </button>
             <button 
-              className="p-1 sm:p-2 border border-gray-300 rounded-full hover:bg-gray-100"
+              className="p-1 sm:p-2 border border-gray-700 rounded-full hover:bg-gray-800 text-gray-300"
               onClick={handleNext}
               aria-label="Next products"
             >
@@ -676,17 +676,17 @@ export default function FlashSales() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-red-500 mr-2" />
-          <span className="text-gray-600">Loading flash sales...</span>
+          <span className="text-gray-300">Loading flash sales...</span>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-600">{error}</p>
+        <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 mb-6">
+  <p className="text-red-400">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="mt-2 text-red-700 underline hover:no-underline"
+            className="mt-2 text-red-400 underline hover:no-underline"
           >
             Retry
           </button>
@@ -716,8 +716,8 @@ export default function FlashSales() {
           {products.length === 0 && (
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🔥</div>
-              <h3 className="text-xl font-medium text-gray-600 mb-2">No flash sales available</h3>
-              <p className="text-gray-500">Check back later for amazing deals!</p>
+              <h3 className="text-xl font-medium text-gray-300 mb-2">No flash sales available</h3>
+<p className="text-gray-400">Check back later for amazing deals!</p>
             </div>
           )}
 

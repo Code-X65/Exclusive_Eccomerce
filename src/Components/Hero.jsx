@@ -14,8 +14,9 @@ import PlayStation from '../assets/Images/playstationLogo.png'
 import Nike from '../assets/Images/nikeLogo.png'
 
 import { Link } from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
 const Hero = () => {
+  const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState(null);
@@ -96,7 +97,7 @@ const Hero = () => {
   },
   { 
     name: "Phone Accessories", 
-    hasSubmenu: true,
+    hasSubmenu: true, 
     link: "/categories/accessories",
     subcategories: [
       { name: "Cases & Covers", items: ["Protective Cases", "Designer Cases", "Leather Cases", "Clear Cases"] },
@@ -113,6 +114,10 @@ const Hero = () => {
   { name: "Phone Plans", hasSubmenu: false, link: "/categories/plans" },
   { name: "Trade-In Program", hasSubmenu: false, link: "/categories/trade-in" },
 ];
+const handleCategoryClick = (categoryName, subcategoryName = null) => {
+  const searchTerm = subcategoryName || categoryName;
+  navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
+};
   
   useEffect(() => {
     // Initialize GSAP animation
@@ -225,14 +230,13 @@ const Hero = () => {
   };
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
+    <div className="w-full max-w-full overflow-hidden bg-gray-900">
       <div className="flex flex-col lg:flex-row w-full container mx-auto max-w-6xl px-4 sm:px-6">
         {/* Mobile Menu Button - Only visible on small screens */}
-        <div className="lg:hidden w-full flex justify-between items-center py-3 border-b border-gray-200">
-          <button 
-            onClick={toggleMobileMenu} 
-            className="flex items-center text-gray-700 hover:text-blue-500"
-            aria-label="Toggle Categories Menu"
+       <div className="lg:hidden w-full flex justify-between items-center py-3 border-b border-gray-700">
+  <button 
+    onClick={toggleMobileMenu} 
+    className="flex items-center text-gray-200 hover:text-red-500"
           >
             <Menu size={20} className="mr-2" />
             <span>Categories</span>
@@ -242,47 +246,52 @@ const Hero = () => {
         {/* Mobile Categories Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden mobile-menu-container fixed inset-0 bg-black/[0.5] z-50">
-            <div className="bg-white w-64 h-full overflow-y-auto p-4 animate-slide-right">
+            <div className="bg-gray-900 w-64 h-full overflow-y-auto p-4 animate-slide-right">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg">Categories</h3>
-                <button 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
+              <h3 className="font-bold text-lg text-gray-100">Categories</h3>
+<button 
+  onClick={() => setIsMobileMenuOpen(false)}
+  className="text-gray-400 hover:text-gray-200"
+>
                   &times;
                 </button>
               </div>
               <ul className="py-2 space-y-2">
                 {categories.map((category, index) => (
                   <li key={index}>
-                    <Link 
-  to={category.link || '#'}
-  className="px-2 py-2 flex justify-between items-center hover:bg-gray-100 rounded cursor-pointer"
-  onClick={() => toggleMobileDropdown(index)}
+<div 
+ className="px-2 py-2 flex justify-between items-center hover:bg-gray-800 rounded cursor-pointer"
+  onClick={() => {
+    if (category.hasSubmenu) {
+      toggleMobileDropdown(index);
+    } else {
+      handleCategoryClick(category.name);
+    }
+  }}
 >
-  <span className="text-gray-800 text-sm">{category.name}</span>
+  <span className="text-gray-200 text-sm">{category.name}</span>
   {category.hasSubmenu && (
     hoveredCategory === index 
       ? <ChevronDown size={16} className="text-gray-400" />
       : <ChevronRight size={16} className="text-gray-400" />
   )}
-</Link>
+</div>
                     
                     {/* Mobile Dropdown Menu */}
                     {category.hasSubmenu && hoveredCategory === index && (
-                      <div className="pl-4 py-2 bg-gray-50 rounded mt-1">
+                      <div className="pl-4 py-2 bg-gray-800 rounded mt-1">
                         {category.subcategories.map((subcat, subIdx) => (
                           <div key={subIdx} className="mb-2">
-                            <div className="font-medium text-sm text-gray-700 mb-1">{subcat.name}</div>
+                            <div className="font-medium text-sm text-gray-300 mb-1">{subcat.name}</div>
                             <ul className="space-y-1 pl-2">
                               {subcat.items.map((item, itemIdx) => (
-                              <Link
-  to={`/products/${item.toLowerCase().replace(/\s+/g, '-')}`}
-  key={itemIdx} 
-  className="text-xs text-gray-600 hover:text-blue-500 py-1 cursor-pointer block"
+<div
+  key={itemIdx}
+  onClick={() => handleCategoryClick(subcat.name, item)}
+  className="text-xs text-gray-400 hover:text-red-500 py-1 cursor-pointer block"
 >
   {item}
-</Link>
+</div>
                               ))}
                             </ul>
                           </div>
@@ -297,7 +306,7 @@ const Hero = () => {
         )}
         
         {/* Sidebar Navigation - Only visible on large screens */}
-        <div className="hidden lg:block w-64 border-r border-gray-200 text-gray-800 text-sm pr-4">
+        <div className="hidden lg:block w-64 border-r border-gray-700 text-gray-200 text-sm pr-4">
           <ul className="py-4 space-y-2">
             {categories.map((category, index) => (
               <li 
@@ -306,27 +315,30 @@ const Hero = () => {
                 onMouseEnter={() => handleCategoryHover(index)}
                 onMouseLeave={handleCategoryLeave}
               >
-               <Link to={category.link || '#'} className={`px-6 py-2 flex justify-between items-center hover:bg-gray-100 hover:text-red-400 rounded cursor-pointer ${hoveredCategory === index ? 'bg-gray-100' : ''}`}>
-  <span className="text-gray-800 text-sm">{category.name}</span>
+            <div 
+  onClick={() => handleCategoryClick(category.name)}
+  className={`px-6 py-2 flex justify-between items-center hover:bg-gray-800 hover:text-red-400 rounded cursor-pointer ${hoveredCategory === index ? 'bg-gray-800' : ''}`}
+>
+  <span className="text-gray-200 text-sm">{category.name}</span>
   {category.hasSubmenu && <ChevronRight size={16} className="text-gray-400" />}
-</Link>
+</div>
                 
                 {/* Desktop Dropdown Menu */}
                 {category.hasSubmenu && hoveredCategory === index && (
-                  <div className="absolute left-full top-0 ml-1 w-72 bg-white shadow-lg rounded-lg z-40 border border-gray-200 overflow-hidden">
+                  <div className="absolute left-full top-0 ml-1 w-72 bg-gray-900 shadow-lg rounded-lg z-40 border border-gray-700 overflow-hidden">
                     <div className="grid grid-cols-1 gap-4 p-4">
                       {category.subcategories.map((subcat, subIdx) => (
                         <div key={subIdx} className="mb-2">
-                          <div className="font-medium text-sm text-gray-800 mb-2 border-b pb-1">{subcat.name}</div>
+                         <div className="font-medium text-sm text-gray-200 mb-2 border-b border-gray-700 pb-1">{subcat.name}</div>
                           <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
                             {subcat.items.map((item, itemIdx) => (
-                              <Link 
-  to={`/products/${item.toLowerCase().replace(/\s+/g, '-')}`}
-  key={itemIdx} 
-  className="text-xs text-gray-600 hover:text-red-500 cursor-pointer truncate block"
+ <div
+  key={itemIdx}
+  onClick={() => handleCategoryClick(subcat.name, item)}
+className="text-xs text-gray-400 hover:text-red-500 cursor-pointer truncate block"
 >
   {item}
-</Link>
+</div>
                             ))}
                           </ul>
                         </div>
@@ -354,20 +366,22 @@ const Hero = () => {
                   zIndex: index === activeSlide ? 10 : 1
                 }}
               >
-                <div className="flex flex-col sm:flex-row items-center justify-between h-full px-6 sm:px-8 md:px-12 py-6 sm:py-8">
+                <div className="flex flex-col sm:flex-row items-center justify-between h-full px-6 sm:px-8 md:px-12 py-6 sm:py-8 cursor-pointer"
+  onClick={() => handleCategoryClick(banner.brand)}
+>
                   <div className="z-10 w-full sm:w-1/2 text-center sm:text-left mb-4 sm:mb-0">
                     <div className="flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-start space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
                       <img src={banner.logoPlaceholder} alt={`${banner.brand} logo`} className="w-16 h-8 object-contain" />
                       <span className="text-xs sm:text-sm font-semibold">{banner.productLine}</span>
                     </div>
                     <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">{banner.title}</h2>
-                   <Link 
-  to={`/products/${banner.brand.toLowerCase()}`}
-  className="flex items-center text-sm font-medium mx-auto sm:mx-0 group"
+<div 
+  onClick={() => handleCategoryClick(banner.brand)}
+  className="flex items-center text-sm font-medium mx-auto sm:mx-0 group cursor-pointer"
 >
   <span>{banner.ctaText}</span>
   <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
-</Link>
+</div>
                   </div>
                   
                   <div className="w-full sm:w-1/2 flex justify-center sm:justify-end">

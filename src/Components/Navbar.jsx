@@ -28,7 +28,7 @@ const cartCount = getCartCount();
   const handleProfile = () => {
     setProfile(!profile);
   };
-  const mobileMenuItemClass = "text-white hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2";
+//  className="w-full text-left text-gray-200 hover:bg-gray-800 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2 animate-bounceIn"
   
 
     const handleLogout = async () => {
@@ -197,7 +197,7 @@ useEffect(() => {
 
 
   return (
-    <header className="bg-white border-b-1 border-gray-300 relative">
+    <header className="bg-gray-900 border-b border-gray-700 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
         <div className="flex justify-between h-16">
 
@@ -207,16 +207,16 @@ useEffect(() => {
               </Link>
             </div>
             <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link to="/" className="border-transparent text-gray-500 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
+              <Link to="/"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 Home
               </Link>
-              <Link to="/products" className="border-transparent text-gray-500 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
+              <Link to="/products"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 Products
               </Link>
-              <Link to="/categories" className="border-transparent text-gray-500 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
+              <Link to="/categories"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 Categories
               </Link>
-              <Link to="/contact" className="border-transparent text-gray-500 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
+              <Link to="/contact"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 Contact
               </Link>
               {
@@ -224,7 +224,7 @@ useEffect(() => {
                    <></>
                 ):(
                   <>
-                   <Link to="/signup" className="border-transparent text-gray-500 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
+                   <Link to="/signup"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 SignUp
               </Link>
                   </>
@@ -248,10 +248,10 @@ useEffect(() => {
       }
     }}
     placeholder="What are you looking for?" 
-    className="w-full py-2 pl-3 pr-10 text-sm rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+    className="w-full py-2 pl-3 pr-10 text-sm rounded-md bg-gray-800 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600 border border-gray-700"
   />
   <div 
-    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 cursor-pointer"
+    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 cursor-pointer hover:text-red-500"
     onClick={() => handleSearchSubmit()}
   >
     <Search />
@@ -259,9 +259,9 @@ useEffect(() => {
   
  {/* Search Dropdown */}
 {showSearchDropdown && (
-  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
     {isLoadingSuggestions && (
-      <div className="px-4 py-2 text-sm text-gray-500 flex items-center">
+      <div className="px-4 py-2 text-sm text-gray-400 flex items-center">
         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
         Searching...
       </div>
@@ -270,7 +270,7 @@ useEffect(() => {
     {/* Show search history when no query and history exists */}
     {!isLoadingSuggestions && searchQuery.length === 0 && searchHistory.length > 0 && (
       <>
-        <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
+        <div className="px-4 py-2 text-xs font-semibold text-gray-400 bg-gray-900 border-b border-gray-700">
           Recent Searches
         </div>
         {searchHistory.slice(0, 5).map((historyItem, index) => (
@@ -281,7 +281,7 @@ useEffect(() => {
               e.stopPropagation();
               handleSuggestionClick(historyItem);
             }}
-            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center border-b border-gray-50 last:border-b-0"
+            className="px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center border-b border-gray-50 last:border-b-0"
           >
             <Search size={14} className="mr-3 text-gray-400" />
             <span>{historyItem}</span>
@@ -293,7 +293,7 @@ useEffect(() => {
     {/* Show product suggestions when typing */}
     {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length > 0 && (
       <>
-        <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b">
+        <div className="px-4 py-2 text-xs font-semibold text-gray-400 bg-gray-900 border-b border-gray-700">
           Products
         </div>
         {searchSuggestions.map((suggestion) => (
@@ -304,10 +304,10 @@ useEffect(() => {
               e.stopPropagation();
               handleSuggestionClick(suggestion);
             }}
-            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer border-b border-gray-50 last:border-b-0"
+            className="px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 cursor-pointer border-b border-gray-50 last:border-b-0"
           >
             <div className="font-medium">{suggestion.name}</div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-400">
               {suggestion.category} • ₦{suggestion.price?.toLocaleString()}
             </div>
           </div>
@@ -317,7 +317,7 @@ useEffect(() => {
     
     {/* No results message */}
     {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length === 0 && (
-      <div className="px-4 py-2 text-sm text-gray-500">
+      <div className="px-4 py-2 text-sm text-gray-400">
         No products found for "{searchQuery}"
       </div>
     )}
@@ -330,7 +330,7 @@ useEffect(() => {
           e.stopPropagation();
           handleSearchSubmit();
         }}
-        className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 cursor-pointer border-t border-gray-200"
+        className="px-4 py-2 text-sm text-blue-400 hover:bg-gray-700 cursor-pointer border-t border-gray-200"
       >
         <Search size={14} className="inline mr-2" />
         Search for "{searchQuery}"
@@ -339,7 +339,7 @@ useEffect(() => {
     
     {/* Show message when no history */}
     {!isLoadingSuggestions && searchQuery.length === 0 && searchHistory.length === 0 && (
-      <div className="px-4 py-2 text-sm text-gray-500">
+      <div className="px-4 py-2 text-sm text-gray-400">
         Start typing to search for products...
       </div>
     )}
@@ -353,11 +353,11 @@ useEffect(() => {
       {/* Icon buttons */}
       <Link to='/wishlist'>
       
-      <Heart className="w-6 h-6 text-gray-700 hover:text-red-500 cursor-pointer transition-colors" />
+      <Heart className="w-6 h-6 text-gray-300 hover:text-red-500 cursor-pointer transition-colors" />
       </Link>
 
       <Link to="/cart" className="relative">
-  <ShoppingBasket className="w-6 h-6 text-gray-700 hover:text-blue-500 cursor-pointer transition-colors" />
+  <ShoppingBasket className="w-6 h-6 text-gray-300 hover:text-blue-500 cursor-pointer transition-colors" />
   {cartCount > 0 && (
     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
       {cartCount > 99 ? '99+' : cartCount}
@@ -415,7 +415,7 @@ useEffect(() => {
           <div className="flex items-center md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500"
+             className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-gray-100 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
@@ -468,7 +468,7 @@ useEffect(() => {
       className="w-full py-2 pl-4 pr-10 rounded-md bg-gray-100 text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
     />
     <div 
-      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-700 cursor-pointer"
+      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 cursor-pointer hover:text-red-500"
       onClick={() => handleSearchSubmit()}
     >
       <Search />
@@ -476,10 +476,10 @@ useEffect(() => {
     
     {/* Mobile Search Dropdown */}
     {showSearchDropdown && (
-      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
         {/* Same dropdown content as desktop */}
         {isLoadingSuggestions && (
-          <div className="px-4 py-2 text-sm text-gray-500 flex items-center">
+          <div className="px-4 py-2 text-sm text-gray-400 flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
             Searching...
           </div>
@@ -487,14 +487,14 @@ useEffect(() => {
         
         {!isLoadingSuggestions && searchQuery.length === 0 && searchHistory.length > 0 && (
           <>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+            <div className="px-4 py-2 text-xs font-semibold text-gray-400 bg-gray-50">
               Recent Searches
             </div>
             {searchHistory.slice(0, 5).map((historyItem, index) => (
               <div
                 key={index}
                 onClick={() => handleSuggestionClick(historyItem)}
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+                className="px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center"
               >
                 <Search size={14} className="mr-2 text-gray-400" />
                 {historyItem}
@@ -505,7 +505,7 @@ useEffect(() => {
         
         {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length > 0 && (
           <>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+            <div className="px-4 py-2 text-xs font-semibold text-gray-400 bg-gray-50">
               Products
             </div>
            {/* For product suggestions */}
@@ -516,10 +516,10 @@ useEffect(() => {
       e.preventDefault();
       handleSuggestionClick(suggestion);
     }}
-    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+    className="px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 cursor-pointer"
   >
     <div className="font-medium">{suggestion.name}</div>
-    <div className="text-xs text-gray-500">
+    <div className="text-xs text-gray-400">
       {suggestion.category} • ₦{suggestion.price?.toLocaleString()}
     </div>
   </div>
@@ -533,7 +533,7 @@ useEffect(() => {
       e.preventDefault();
       handleSuggestionClick(historyItem);
     }}
-    className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center"
+    className="px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 cursor-pointer flex items-center"
   >
     <Search size={14} className="mr-2 text-gray-400" />
     {historyItem}
@@ -543,7 +543,7 @@ useEffect(() => {
         )}
         
         {!isLoadingSuggestions && searchQuery.length > 0 && searchSuggestions.length === 0 && (
-          <div className="px-4 py-2 text-sm text-gray-500">
+          <div className="px-4 py-2 text-sm text-gray-400">
             No products found for "{searchQuery}"
           </div>
         )}
@@ -551,7 +551,7 @@ useEffect(() => {
         {searchQuery.length > 0 && (
           <div
             onClick={() => handleSearchSubmit()}
-            className="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 cursor-pointer border-t border-gray-100"
+            className="px-4 py-2 text-sm text-blue-400 hover:bg-gray-700 cursor-pointer border-t border-gray-100"
           >
             Search for "{searchQuery}"
           </div>
@@ -587,7 +587,7 @@ useEffect(() => {
     handleLogout();
     setIsMenuOpen(false);
   }}
- className="w-full text-left text-gray-500 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2 animate-bounceIn"
+ className="w-full text-left text-gray-400 hover:bg-gray-50 hover:text-red-500 block pl-3 pr-4 py-2 text-base font-medium transform transition-all duration-200 hover:translate-x-2 animate-bounceIn"
 >
   Log Out
 </button>
@@ -602,7 +602,7 @@ useEffect(() => {
 </Link>
               </div>
             )}
-           <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-white hover:bg-gray-50 hover:text-red-500 flex items-center pl-3 pr-4 py-2 text-base font-medium">
+           <Link to="/cart" onClick={() => setIsMenuOpen(false)} className="text-gray-200 hover:bg-gray-800 hover:text-red-500 flex items-center pl-3 pr-4 py-2 text-base font-medium">
   <div className="relative mr-2">
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -619,9 +619,9 @@ useEffect(() => {
  
 
 {/* Mobile Wichlist and cart */}
-<div className="px-4 py-3 border-t border-gray-200">
+<div className="px-4 py-3 border-t border-gray-700">
   <div className="flex items-center space-x-4">
-    <Link to="/wishlist" className="flex items-center text-white hover:text-red-500">
+    <Link to="/wishlist" className="flex items-center text-gray-200 hover:text-red-500">
       <Heart className="w-6 h-6 mr-2" />
       Wishlist
     </Link>

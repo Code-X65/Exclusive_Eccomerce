@@ -10,14 +10,13 @@ import CompanyFeatures from '../Components/CompanyFeatures'
 
 const HomePage = () => {
   return (
-    <div className='bg-gray-50'>
+    <div className='bg-gray-900'>
       <Hero />
       <FlashSales />
       <Category />
       <BestSelling />
       <Categories />
-  
-      <NewArrival />    
+      <NewArrival  />
       <CompanyFeatures />
     </div>
   )

@@ -58,6 +58,18 @@ const [loading, setLoading] = useState(true);
 const [error, setError] = useState('');
 
 const filteredProducts = shuffledProducts.filter(product => {
+  // Search query filter
+  if (searchQuery && searchQuery.trim()) {
+    const searchTerm = searchQuery.toLowerCase().trim();
+    const matchesSearch = 
+      product.name?.toLowerCase().includes(searchTerm) ||
+      product.description?.toLowerCase().includes(searchTerm) ||
+      product.category?.toLowerCase().includes(searchTerm);
+    
+    if (!matchesSearch) return false;
+  }
+  
+  // Category filter
   const categoryMatch = selectedCategory === 'All' || 
     (selectedCategory === 'Gaming' && (product.name?.includes('Gamepad') || product.name?.includes('Gaming') || product.category === 'gaming')) ||
     (selectedCategory === 'Electronics' && (product.name?.includes('Keyboard') || product.name?.includes('Monitor') || product.category === 'smartphone' || product.category === 'accessory')) ||
@@ -66,11 +78,12 @@ const filteredProducts = shuffledProducts.filter(product => {
     (selectedCategory === 'Monitors' && product.name?.includes('Monitor')) ||
     (selectedCategory === 'Keyboards' && product.name?.includes('Keyboard'));
   
+  // Price filter
   const priceRange = priceRanges.find(range => range.label === selectedPriceRange);
   const priceMatch = product.salePrice >= priceRange.min && product.salePrice <= priceRange.max;
   
   return categoryMatch && priceMatch;
-});
+});   
 const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 const startIndex = (currentPage - 1) * productsPerPage;
 const endIndex = startIndex + productsPerPage;

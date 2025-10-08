@@ -96,21 +96,21 @@ const Category = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-0">Browse By Category</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-0 text-white">Browse By Category</h1>
 
             <div className="flex items-center gap-4">
               <div className="flex gap-2">
                 <button
                   onClick={() => navigateCategories('prev')}
                   disabled={currentCategoryIndex === 0}
-                  className={`p-2 border border-gray-300 rounded-full hover:bg-red-500 hover:text-white transition-colors ${currentCategoryIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`p-2 border text-white border-gray-300 rounded-full hover:bg-red-500 hover:text-white transition-colors ${currentCategoryIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <button 
                   onClick={() => navigateCategories('next')}
                   disabled={currentCategoryIndex >= maxCategoryIndex}
-                  className={`p-2 border border-gray-300 rounded-full hover:bg-red-500 hover:text-white transition-colors ${currentCategoryIndex >= maxCategoryIndex ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`p-2 border text-white border-gray-300 rounded-full hover:bg-red-500 hover:text-white transition-colors ${currentCategoryIndex >= maxCategoryIndex ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -133,8 +133,8 @@ const Category = () => {
                     className={`flex-none ${getItemWidthClass()} px-1 sm:px-2`}
                   >
                     <div className="flex flex-col items-center gap-2 sm:gap-4 p-3 sm:p-6 border border-gray-300 rounded shadow-sm hover:bg-red-500 group transition-colors hover:border-0">
-                      <div className="group-hover:text-white transition-colors">{category.icon}</div>
-                      <div className="text-xs sm:text-sm font-medium text-center group-hover:text-white transition-colors">{category.title}</div>
+                      <div className="group-hover:text-white transition-colors text-white">{category.icon}</div>
+                      <div className="text-xs sm:text-sm font-medium text-center group-hover:text-white transition-colors text-white">{category.title}</div>
                     </div>
                   </div>
                 ))}

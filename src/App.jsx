@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ProtectedRoute } from './Components/ProtectedRoute'
 import HomePage from './Pages/HomePage'
 import Navbar from './Components/Navbar'
@@ -24,18 +24,39 @@ import { CartProvider } from './Components/CartContext';
 
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(false)
+
+  const [isLoading, setIsLoading] = useState(true)
+  // Scroll to top component
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+useEffect(() => {
+  // Simulate initial app load
+  const timer = setTimeout(() => {
+    setIsLoading(false)
+  }, 1000) // Adjust timing as needed
+
+  return () => clearTimeout(timer)
+}, [])
   return (
     <>
     <CartProvider>
      {/* Loading Spinner */}
     {isLoading && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-300"></div>
-      </div>
+<div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
+  <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-red-500"></div>
+</div>
     )}
     <Router >
       <AuthProvider setIsLoading={setIsLoading}>
+        <ScrollToTop />
         <Routes>
           {/* Inline layout using react-router Outlet so we don't depend on BaseLayout component file */}
           <Route element={<>
@@ -51,6 +72,8 @@ const App = () => {
             <Route path="about" element={<AboutPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="products" element={<ProductPage />} />
+            <Route path="products/:category" element={<ProductPage />} />
+            
             <Route path="product/:id" element={<ProductDetails />} />
 
             <Route element={<ProtectedRoute />}>

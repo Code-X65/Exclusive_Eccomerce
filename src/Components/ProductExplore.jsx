@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef,} from 'react';
 import { Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Loader2, Share2, Copy, MessageCircle, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
@@ -10,6 +10,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from './firebase';
 
 export default function ProductExplore() {
+  const navigate = useNavigate();
+const { category: categoryParam } = useParams();
   const [selectedCategory, setSelectedCategory] = useState('All')
 const [selectedPriceRange, setSelectedPriceRange] = useState('All');
 const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -267,14 +269,14 @@ const shuffleArray = (array) => {
 };
 
 const Sidebar = () => (
-  <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 lg:relative lg:translate-x-0 lg:block`}>
-    <div className="p-4 h-full overflow-y-auto">
+  <div className={`fixed inset-y-0 left-0 w-64 bg-gray-900 shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 lg:sticky lg:top-20 lg:translate-x-0 lg:block lg:h-screen lg:overflow-y-auto z-50`}>
+    <div className="p-4 h-full overflow-y-auto lg:max-h-[calc(100vh-5rem)]">
       {/* Close button for mobile */}
-      <div className="lg:hidden flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Filters</h3>
+      <div className="lg:hidden flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
+        <h3 className="text-lg font-semibold text-white">Filters</h3>
         <button 
           onClick={() => setSidebarOpen(false)}
-          className="p-1 hover:bg-gray-100 rounded"
+          className="p-2 hover:bg-gray-800 rounded text-gray-300"
         >
           ✕
         </button>
@@ -282,44 +284,63 @@ const Sidebar = () => (
 
       {/* Categories Filter */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800">Categories</h3>
+        <h3 className="text-lg font-semibold mb-3 text-white">Categories</h3>
         <div className="space-y-2">
           {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                selectedCategory === category 
-                  ? 'bg-red-500 text-white' 
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {category}
-            </button>
+    <button
+  key={category}
+  onClick={() => {
+    setSelectedCategory(category);
+    setSidebarOpen(false);
+    // Navigate to category route
+    if (category === 'All') {
+      navigate('/products');
+    } else {
+      navigate(`/products/${category.toLowerCase()}`);
+    }
+  }}
+  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+    selectedCategory === category 
+      ? 'bg-red-500 text-white' 
+      : 'text-gray-300 hover:bg-gray-800'
+  }`}
+>
+  {category}
+</button>
           ))}
         </div>
       </div>
 
       {/* Price Range Filter */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800">Price Range</h3>
+        <h3 className="text-lg font-semibold mb-3 text-white">Price Range</h3>
         <div className="space-y-2">
           {priceRanges.map(range => (
             <button
-              key={range.label}
-              onClick={() => setSelectedPriceRange(range.label)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                selectedPriceRange === range.label 
-                  ? 'bg-red-500 text-white' 
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {range.label}
-            </button>
+  key={range.label}
+  onClick={() => {
+    setSelectedPriceRange(range.label);
+    setSidebarOpen(false);
+    // Update URL
+    const params = new URLSearchParams(location.search);
+    if (range.label === 'All') {
+      params.delete('price');
+    } else {
+      params.set('price', range.label);
+    }
+    navigate(`?${params.toString()}`, { replace: true });
+  }}
+  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+    selectedPriceRange === range.label 
+      ? 'bg-red-500 text-white' 
+      : 'text-gray-300 hover:bg-gray-800'
+  }`}
+>
+  {range.label}
+</button>
           ))}
         </div>
       </div>
-
     </div>
   </div>
 );
@@ -439,6 +460,16 @@ useEffect(() => {
   
   return () => unsubscribe();
 }, []);
+
+// Sync category from URL params
+useEffect(() => {
+  if (categoryParam) {
+    const formattedCategory = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1).toLowerCase();
+    setSelectedCategory(formattedCategory);
+  } else {
+    setSelectedCategory('All');
+  }
+}, [categoryParam]);
 
  
 
@@ -658,12 +689,12 @@ const ProductCard = ({ product }) => {
 
   return (
     <div 
-      className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 relative"
+     className="bg-gray-900 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-800 relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container */}
-      <div className="relative bg-gray-50 p-3 sm:p-4">
+      <div className="relative bg-gray-800 p-3 sm:p-4">
         {/* Discount Badge */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-red-500 text-white text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md z-10">
           -{product.discount}%
@@ -709,8 +740,8 @@ const ProductCard = ({ product }) => {
 
             {/* Share Menu */}
             {showShareMenu && (
-              <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 w-48 p-3">
-                <h5 className="font-medium text-gray-800 mb-2 text-xs">Share Product</h5>
+              <div className="absolute right-0 top-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 w-48 p-3">
+                <h5 className="font-medium text-gray-200 mb-2 text-xs">Share Product</h5>
                 
                 <div className="space-y-1">
                   <button 
@@ -788,8 +819,8 @@ const ProductCard = ({ product }) => {
       </div>
       
       {/* Product Info */}
-      <div className="p-2 sm:p-4">
-        <h3 className="font-medium text-xs sm:text-sm md:text-base mb-1 sm:mb-2 line-clamp-2 h-8 sm:h-10 text-gray-800 group-hover:text-gray-900 leading-tight">
+      <div className="p-2 sm:p-4 bg-gray-900">
+        <h3 className="font-medium text-xs sm:text-sm md:text-base mb-1 sm:mb-2 line-clamp-2 h-8 sm:h-10 text-gray-200 group-hover:text-white leading-tight">
           {product.name}
         </h3>
         
@@ -853,7 +884,7 @@ const ProductCard = ({ product }) => {
 
 
 return (
-  <div className="flex min-h-screen bg-gray-50">
+   <div className="flex min-h-screen bg-gray-950">
     {/* Sidebar */}
     <Sidebar />
     
@@ -867,64 +898,66 @@ return (
 
     {/* Main Content */}
     <div className="flex-1 lg:ml-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        {/* Header Section */}
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center">
-            <button 
-              className="lg:hidden p-2 mr-2 hover:bg-gray-100 rounded"
-              onClick={() => setSidebarOpen(true)}
-            >
-              ☰
-            </button>
-            <div className="w-3 sm:w-5 h-8 sm:h-10 bg-red-500 rounded mr-2"></div>
-            <h2 className="text-md sm:text-md font-bold">Products</h2>
-          </div>
-          
-         {/* Results Count */}
-<div className="text-sm text-gray-600 max-sm:hidden">
-  Showing {filteredProducts.length} of {searchQuery ? shuffledProducts.length : products.length} products
-  {searchQuery && <span className="ml-2 text-red-500">• Search: "{searchQuery}"</span>}
+  <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-6">
+    {/* Header Section */}
+<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+  <div className="flex items-center w-full sm:w-auto">
+    <button 
+      className="lg:hidden p-2 mr-2 hover:bg-gray-800 rounded text-white"
+      onClick={() => setSidebarOpen(true)}
+    >
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div className="w-3 sm:w-5 h-8 sm:h-10 bg-red-500 rounded mr-2"></div>
+    <h2 className="text-lg sm:text-xl font-bold text-white">Products</h2>
+  </div>
+  
+  {/* Results Count */}
+  <div className="text-xs sm:text-sm text-gray-400 w-full sm:w-auto">
+    Showing {filteredProducts.length} of {searchQuery ? shuffledProducts.length : products.length} products
+    {searchQuery && <span className="ml-2 text-red-400">• Search: "{searchQuery}"</span>}
+  </div>
 </div>
-        </div>
 
         {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-red-500 mr-2" />
-            <span className="text-gray-600">Loading products...</span>
-          </div>
-        )}
+      {loading && (
+  <div className="flex items-center justify-center py-12">
+    <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-red-500 mr-2" />
+    <span className="text-gray-300 text-sm sm:text-base">Loading products...</span>
+  </div>
+)}
 
-        {/* Error State */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-2 text-red-700 underline hover:no-underline"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+{/* Error States */}
+      {error && (
+  <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3 sm:p-4 mb-6">
+    <p className="text-red-400 text-sm sm:text-base">{error}</p>
+    <button 
+      onClick={() => window.location.reload()}
+      className="mt-2 text-red-400 underline hover:no-underline text-sm"
+    >
+      Retry
+    </button>
+  </div>
+)}
 
         {/* Rest of your existing JSX content... */}
         {!loading && !error && (
           <>
             {/* Title Section */}
-<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 lg:mb-8 gap-3 sm:gap-4">
   <div>
-    <h1 className="text-2xl sm:text-4xl font-bold mb-2">
+    <h1 className="text-xl sm:text-2xl lg:text-4xl font-bold mb-2 text-white">
       {searchQuery ? `Search Results for "${searchQuery}"` : 'Explore Our Products'}
     </h1>
     {searchQuery && (
-      <p className="text-gray-600">
+      <p className="text-gray-400 text-sm sm:text-base">
         Found {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
       </p>
     )}
     {selectedCategory !== 'All' && (
-      <p className="text-gray-600">Category: <span className="font-medium text-red-500">{selectedCategory}</span></p>
+      <p className="text-gray-400 text-sm sm:text-base">Category: <span className="font-medium text-red-400">{selectedCategory}</span></p>
     )}
   </div>
   
@@ -936,7 +969,7 @@ return (
         setProducts(originalProducts);
         setShuffledProducts(shuffleArray(originalProducts));
       }}
-      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+      className="px-3 py-2 sm:px-4 text-sm sm:text-base bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors w-full sm:w-auto"
     >
       Clear Search
     </button>
@@ -944,29 +977,29 @@ return (
 </div>
 
             {/* Products Section - Mobile Scrollable View */}
-            <div className="sm:hidden pb-4 -mx-4 px-4" ref={productContainerRef}>
-              <div className="flex flex-col gap-4 ">
-                {currentProducts.map((product) =>  (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </div>
+           <div className="sm:hidden pb-4">
+  <div className="flex flex-col gap-3">
+    {currentProducts.map((product) =>  (
+      <ProductCard key={product.id} product={product} />
+    ))}
+  </div>
+</div>
 
-            {/* Products Section - Desktop Grid View */}
-            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {currentProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+          {/* Products Section - Desktop Grid View */}
+<div className="hidden sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+  {currentProducts.map((product) => (
+    <ProductCard key={product.id} product={product} />
+  ))}
+</div>
 
            {/* Empty State */}
 {filteredProducts.length === 0 && (
-  <div className="text-center py-12">
-    <div className="text-gray-400 text-6xl mb-4">📦</div>
-    <h3 className="text-xl font-medium text-gray-600 mb-2">
+  <div className="text-center py-8 sm:py-12">
+    <div className="text-gray-600 text-4xl sm:text-6xl mb-4">📦</div>
+    <h3 className="text-lg sm:text-xl font-medium text-gray-300 mb-2">
       {searchQuery ? `No results found for "${searchQuery}"` : 'No products found'}
     </h3>
-    <p className="text-gray-500">
+    <p className="text-gray-500 text-sm sm:text-base px-4">
       {searchQuery 
         ? 'Try searching with different keywords or check your spelling' 
         : 'Try adjusting your filters to see more results'
@@ -980,7 +1013,7 @@ return (
           setProducts(originalProducts);
           setShuffledProducts(shuffleArray(originalProducts));
         }}
-        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        className="mt-4 px-4 py-2 text-sm sm:text-base bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
       >
         View All Products
       </button>
@@ -988,56 +1021,109 @@ return (
   </div>
 )}
 
-            {/* Pagination */}
-            {filteredProducts.length > productsPerPage && (
-              <div className="flex justify-center items-center mt-6 sm:mt-8 gap-2">
-                {/* Previous Button */}
-                <button 
-                  onClick={goToPrevPage}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === 1 
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Prev
-                </button>
-                
-                {/* Page Numbers */}
-                <div className="flex gap-1">
-                  {[...Array(totalPages)].map((_, index) => {
-                    const page = index + 1;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => goToPage(page)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === page
-                            ? 'bg-red-500 text-white'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-                </div>
-                
-                {/* Next Button */}
-                <button 
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === totalPages 
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            )}
+{/* Suggested Products */}
+{filteredProducts.length === 0 && shuffledProducts.length > 0 && (
+  <div className="mt-8 sm:mt-12">
+    <div className="flex justify-between items-center mb-4 sm:mb-6">
+      <h3 className="text-lg sm:text-xl font-semibold text-white">
+        You Might Like These Instead
+      </h3>
+      <button
+        onClick={() => {
+          setSearchQuery('');
+          setSelectedCategory('All');
+          setSelectedPriceRange('All');
+          window.history.pushState({}, '', window.location.pathname);
+          setProducts(originalProducts);
+          setShuffledProducts(shuffleArray(originalProducts));
+          setCurrentPage(1);
+        }}
+        className="px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+      >
+        View All Products
+      </button>
+    </div>
+    
+    {/* Suggested Products Grid */}
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      {shuffledProducts.slice(0, 8).map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  </div>
+)}
+
+         {/* Pagination */}
+{filteredProducts.length > productsPerPage && (
+  <div className="flex justify-center items-center mt-6 sm:mt-8 gap-1 sm:gap-2 flex-wrap px-2">
+    {/* Previous Button */}
+    <button 
+      onClick={goToPrevPage}
+      disabled={currentPage === 1}
+      className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+        currentPage === 1 
+          ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
+          : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
+      }`}
+    >
+      Prev
+    </button>
+    
+    {/* Page Numbers */}
+    <div className="flex gap-1">
+      {[...Array(totalPages)].map((_, index) => {
+        const page = index + 1;
+        // Show limited pages on mobile
+        if (window.innerWidth < 640 && totalPages > 5) {
+          if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+            return (
+              <button
+                key={page}
+                onClick={() => goToPage(page)}
+                className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                  currentPage === page
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
+                }`}
+              >
+                {page}
+              </button>
+            );
+          } else if (page === currentPage - 2 || page === currentPage + 2) {
+            return <span key={page} className="px-1 text-gray-600">...</span>;
+          }
+          return null;
+        }
+        return (
+          <button
+            key={page}
+            onClick={() => goToPage(page)}
+            className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              currentPage === page
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
+            }`}
+          >
+            {page}
+          </button>
+        );
+      })}
+    </div>
+    
+    {/* Next Button */}
+    <button 
+      onClick={goToNextPage}
+      disabled={currentPage === totalPages}
+      className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+        currentPage === totalPages 
+          ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
+          : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
+      }`}
+    >
+      Next
+    </button>
+  </div>
+)}
           </>
         )}
       </div>

@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Star, ShoppingCart, Heart, Eye, Share2, Copy, MessageCircle } from 'lucide-react';
-import BoomBox from '../assets/Images/bigBoomBox.png'
+import BoomBox from '../assets/Images/boomBox.png'
 
 const BoomBoxPage = () => {
   const navigate = useNavigate();

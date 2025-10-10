@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import BoomBox from '../assets/Images/bigBoomBox.png'
+import BoomBox from '../assets/Images/boomBox.png'
 import { Link } from 'react-router-dom'
 const Categories = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })

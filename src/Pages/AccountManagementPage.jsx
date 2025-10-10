@@ -131,19 +131,7 @@ const AccountSidebar = ({ setIsNavigating }) => {
               Address Book
             </NavLink>
           </li>
-          <li>
-            <NavLink 
-              to="/account/payment" 
-              onClick={handleNavClick}
-              className={({ isActive }) => 
-                `block w-full text-left px-2 py-1 rounded-md transition-colors duration-150 ${
-                  isActive ? 'font-medium text-red-500' : 'text-gray-600 hover:bg-gray-100'
-                }`
-              }
-            >
-              My Payment Options
-            </NavLink>
-          </li>
+        
         </ul>
       </div>
       
@@ -163,32 +151,7 @@ const AccountSidebar = ({ setIsNavigating }) => {
               My Orders
             </NavLink>
           </li>
-          <li>
-            <NavLink 
-              to="/account/returns" 
-              onClick={handleNavClick}
-              className={({ isActive }) => 
-                `block w-full text-left px-2 py-1 rounded-md transition-colors duration-150 ${
-                  isActive ? 'font-medium text-red-500' : 'text-gray-600 hover:bg-gray-100'
-                }`
-              }
-            >
-              My Returns
-            </NavLink>
-          </li>
-          <li>
-            <NavLink 
-              to="/account/cancellations" 
-              onClick={handleNavClick}
-              className={({ isActive }) => 
-                `block w-full text-left px-2 py-1 rounded-md transition-colors duration-150 ${
-                  isActive ? 'font-medium text-red-500' : 'text-gray-600 hover:bg-gray-100'
-                }`
-              }
-            >
-              My Cancellations
-            </NavLink>
-          </li>
+     
         </ul>
       </div>
       

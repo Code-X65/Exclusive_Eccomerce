@@ -141,24 +141,24 @@ const OrdersPage = () => {
     const StatusIcon = orderStatuses[order.status]?.icon || Clock;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+  <div className="bg-white rounded-xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
-          <div className="p-6 border-b border-gray-100 sticky top-0 bg-white">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">Order Details</h2>
-              <button 
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
+         <div className="p-4 sm:p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+  <div className="flex items-center justify-between">
+    <h2 className="text-lg sm:text-xl font-bold text-gray-800">Order Details</h2>
+    <button 
+      onClick={onClose}
+      className="p-2 hover:bg-gray-100 rounded-lg"
+    >
+      <span className="text-xl">✕</span>
+    </button>
+  </div>
+</div>
 
           {/* Order Info */}
-          <div className="p-6">
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+         <div className="p-4 sm:p-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2">Order Information</h3>
                 <div className="space-y-2 text-sm">
@@ -188,18 +188,18 @@ const OrdersPage = () => {
             </div>
 
             {/* Order Items */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-gray-800 mb-4">Order Items</h3>
-              <div className="space-y-3">
-                {(order.items || []).map((item, index) => (
-                  <div key={`${item.productId || index}-${index}`} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                    <img 
-                      src={item.image || '/api/placeholder/60/60'} 
-                      alt={item.name || 'Product'}
-                      className="w-15 h-15 object-cover rounded-lg bg-white"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-800">{item.name || 'Unknown Product'}</h4>
+           <div className="mb-4 sm:mb-6">
+  <h3 className="font-semibold text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base">Order Items</h3>
+  <div className="space-y-2 sm:space-y-3">
+    {(order.items || []).map((item, index) => (
+      <div key={`${item.productId || index}-${index}`} className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
+        <img 
+          src={item.image || '/api/placeholder/60/60'} 
+          alt={item.name || 'Product'}
+          className="w-12 h-12 sm:w-15 sm:h-15 object-cover rounded-lg bg-white flex-shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-gray-800 text-sm sm:text-base truncate">{item.name || 'Unknown Product'}</h4>
                       <div className="text-sm text-gray-600">
                         {item.selectedSize && `Size: ${item.selectedSize} • `}
                         {item.selectedColor && `Color: ${item.selectedColor}`}
@@ -242,11 +242,11 @@ const OrdersPage = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 mt-6">
-              <button className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors">
-                Download Invoice
-              </button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4 sm:mt-6">
+  <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-800 text-sm sm:text-base rounded-lg hover:bg-gray-200 transition-colors">
+    Download Invoice
+  </button>
+</div>
           </div>
         </div>
       </div>
@@ -255,22 +255,22 @@ const OrdersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center">
-            <button 
-              onClick={() => window.history.back()}
-              className="p-2 hover:bg-gray-100 rounded-lg mr-4"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">My Orders</h1>
-              <p className="text-gray-600">Track and manage your orders</p>
-            </div>
-          </div>
-        </div>
+       <div className="mb-4 sm:mb-8">
+  <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-0">
+    <button 
+      onClick={() => window.history.back()}
+      className="p-2 hover:bg-gray-100 rounded-lg"
+    >
+      <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+    </button>
+    <div>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-800">My Orders</h1>
+      <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Track and manage your orders</p>
+    </div>
+  </div>
+</div>
 
         {/* Error Message */}
         {error && (
@@ -291,89 +291,89 @@ const OrdersPage = () => {
         )}
 
         {/* Filters and Sort */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <Filter size={16} className="text-gray-500" />
-              <select 
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              >
-                <option value="all">All Orders</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
+       <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
+  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 sm:items-center">
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      <Filter size={16} className="text-gray-500 flex-shrink-0" />
+      <select 
+        value={filterStatus}
+        onChange={(e) => setFilterStatus(e.target.value)}
+        className="flex-1 px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      >
+        <option value="all">All Orders</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
 
-            <div className="flex items-center gap-2">
-              <Calendar size={16} className="text-gray-500" />
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="amount_high">Highest Amount</option>
-                <option value="amount_low">Lowest Amount</option>
-              </select>
-            </div>
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      <Calendar size={16} className="text-gray-500 flex-shrink-0" />
+      <select 
+        value={sortBy}
+        onChange={(e) => setSortBy(e.target.value)}
+        className="flex-1 px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      >
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="amount_high">Highest Amount</option>
+        <option value="amount_low">Lowest Amount</option>
+      </select>
+    </div>
 
-            <div className="text-sm text-gray-500 ml-auto">
-              {filteredAndSortedOrders.length} of {orders.length} orders
-            </div>
-          </div>
-        </div>
+    <div className="text-xs sm:text-sm text-gray-500 sm:ml-auto text-center sm:text-left">
+      {filteredAndSortedOrders.length} of {orders.length} orders
+    </div>
+  </div>
+</div>
 
         {/* Orders List */}
         {filteredAndSortedOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No orders found</h3>
-            <p className="text-gray-600 mb-6">
-              {filterStatus === 'all' 
-                ? "You haven't placed any orders yet." 
-                : `No orders with status "${orderStatuses[filterStatus]?.label || filterStatus}".`
-              }
-            </p>
-            <button 
-              onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
-              className="bg-red-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
-            >
-              Start Shopping
-            </button>
-          </div>
+         <div className="text-center py-8 sm:py-12 px-4">
+  <Package className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+  <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">No orders found</h3>
+  <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto">
+    {filterStatus === 'all' 
+      ? "You haven't placed any orders yet." 
+      : `No orders with status "${orderStatuses[filterStatus]?.label || filterStatus}".`
+    }
+  </p>
+  <button 
+    onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
+    className="bg-red-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-base font-medium hover:bg-red-600 transition-colors"
+  >
+    Start Shopping
+  </button>
+</div>
         ) : (
           <div className="space-y-4">
             {filteredAndSortedOrders.map((order) => {
               const StatusIcon = orderStatuses[order.status]?.icon || Clock;
               
               return (
-                <div key={order.id} className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-800">Order #{order.id.slice(-8)}</h3>
-                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${orderStatuses[order.status]?.color}`}>
-                          <StatusIcon size={12} />
-                          {orderStatuses[order.status]?.label}
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
-                    </div>
-                    
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-gray-800">
-                        ₦{(order.orderSummary?.total || 0).toLocaleString()}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {(order.items || []).length} item{(order.items || []).length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </div>
+               <div key={order.id} className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
+    <div className="flex-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+        <h3 className="font-semibold text-sm sm:text-base text-gray-800">Order #{order.id.slice(-8)}</h3>
+        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${orderStatuses[order.status]?.color} w-fit`}>
+          <StatusIcon size={12} />
+          {orderStatuses[order.status]?.label}
+        </div>
+      </div>
+      <p className="text-xs sm:text-sm text-gray-600">{formatDate(order.createdAt)}</p>
+    </div>
+    
+    <div className="flex items-center justify-between sm:block sm:text-right">
+      <div className="text-base sm:text-lg font-bold text-gray-800">
+        ₦{(order.orderSummary?.total || 0).toLocaleString()}
+      </div>
+      <p className="text-xs sm:text-sm text-gray-600">
+        {(order.items || []).length} item{(order.items || []).length !== 1 ? 's' : ''}
+      </p>
+    </div>
+  </div>
 
                   {/* Order Items Preview */}
                   <div className="flex gap-3 mb-4 overflow-x-auto">
@@ -393,20 +393,20 @@ const OrdersPage = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3 pt-4 border-t border-gray-100">
-                    <button 
-                      onClick={() => setSelectedOrder(order)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                    >
-                      <Eye size={16} />
-                      View Details
-                    </button>
-                    
-                    <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors">
-                      <Download size={16} />
-                      Invoice
-                    </button>
-                  </div>
+     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 border-t border-gray-100">
+    <button 
+      onClick={() => setSelectedOrder(order)}
+      className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm sm:text-base"
+    >
+      <Eye size={16} />
+      View Details
+    </button>
+    
+    <button className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base">
+      <Download size={16} />
+      Invoice
+    </button>
+  </div>
                 </div>
               );
             })}

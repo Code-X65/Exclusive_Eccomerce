@@ -301,7 +301,7 @@ const WishlistPage = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Your wishlist is empty</h2>
             <p className="text-gray-600 mb-8">Save your favorite items for later!</p>
             <button 
-              onClick={() => window.location.href = ' /Exclusive_Eccomerce/#/products'}
+              onClick={() => window.location.href = ' /Exclusive_Eccomerce/products'}
               className="bg-red-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-red-600 transition-colors"
             >
               Explore Products

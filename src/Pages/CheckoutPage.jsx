@@ -474,7 +474,7 @@ const handlePaymentSuccess = async (response) => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
+        <div className="text-center  mx-auto p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Please Sign In</h2>
           <p className="text-gray-600 mb-6">You need to be logged in to checkout.</p>
@@ -493,7 +493,7 @@ const handlePaymentSuccess = async (response) => {
   if (cartItems.length === 0 && !success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
+        <div className="text-center  mx-auto p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Your cart is empty</h2>
           <p className="text-gray-600 mb-6">Add some products before checking out.</p>
@@ -512,7 +512,7 @@ const handlePaymentSuccess = async (response) => {
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
+        <div className="text-center  mx-auto p-6">
           <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h2>
           <p className="text-gray-600 mb-6">Thank you for your purchase. You'll receive a confirmation email shortly.</p>
@@ -539,12 +539,12 @@ const handlePaymentSuccess = async (response) => {
     <div className="min-h-screen bg-gray-50">
   {/* Paystack script is loaded dynamically via useEffect */}
       
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <button 
-            onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : window.history.back()}
-            className="p-2 hover:bg-gray-100 rounded-lg mr-4"
+        <div className="flex items-center mb-6 sm:mb-8">
+           <button 
+    onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : window.history.back()}
+    className="p-2 hover:bg-gray-100 rounded-lg mr-3 sm:mr-4"
           >
             <ArrowLeft size={20} />
           </button>
@@ -552,8 +552,8 @@ const handlePaymentSuccess = async (response) => {
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
+       <div className="mb-6 sm:mb-8">
+          <div className="hidden sm:flex items-center justify-center space-x-8">
             {[
               { step: 1, label: 'Shipping Info', icon: User },
               { step: 2, label: 'Payment', icon: CreditCard },
@@ -581,6 +581,12 @@ const handlePaymentSuccess = async (response) => {
             ))}
           </div>
         </div>
+        {/* Mobile Progress Indicator */}
+  <div className="sm:hidden flex justify-center mb-6">
+    <div className="text-sm font-medium text-gray-600">
+      Step {currentStep} of 3
+    </div>
+  </div>
 
         {/* Error Message */}
         {error && (
@@ -600,12 +606,12 @@ const handlePaymentSuccess = async (response) => {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             {/* Step 1: Shipping Information */}
             {currentStep === 1 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <div className="flex items-center mb-6">
                   <MapPin className="w-5 h-5 text-red-500 mr-2" />
                   <h2 className="text-lg font-semibold text-gray-800">Shipping Information</h2>
@@ -615,11 +621,11 @@ const handlePaymentSuccess = async (response) => {
                 {savedAddresses.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-md font-medium text-gray-700 mb-3">Choose Shipping Address</h3>
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {savedAddresses.map((address) => (
                         <div
                           key={address.id}
-                          className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                          className={`border rounded-lg p-3 sm:p-4 cursor-pointer transition-colors ${
                             selectedAddressId === address.id
                               ? 'border-red-500 bg-red-50'
                               : 'border-gray-300 hover:border-gray-400'
@@ -691,18 +697,18 @@ const handlePaymentSuccess = async (response) => {
                       <h3 className="text-md font-medium text-gray-700 mb-4">New Address Details</h3>
                     )}
                     
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           First Name *
                         </label>
                         <input
-                          type="text"
-                          value={shippingInfo.firstName}
-                          onChange={(e) => handleInputChange('firstName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                          placeholder="Enter your first name"
-                        />
+  type="text"
+  value={shippingInfo.firstName}
+  onChange={(e) => handleInputChange('firstName', e.target.value)}
+  className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+  placeholder="Enter your first name"
+/>
                       </div>
 
                       <div>
@@ -713,7 +719,7 @@ const handlePaymentSuccess = async (response) => {
                           type="text"
                           value={shippingInfo.lastName}
                           onChange={(e) => handleInputChange('lastName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                           placeholder="Enter your last name"
                         />
                       </div>
@@ -726,7 +732,7 @@ const handlePaymentSuccess = async (response) => {
                           type="email"
                           value={shippingInfo.email}
                           onChange={(e) => handleInputChange('email', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                           placeholder="Enter your email"
                         />
                       </div>
@@ -739,7 +745,7 @@ const handlePaymentSuccess = async (response) => {
                           type="tel"
                           value={shippingInfo.phone}
                           onChange={(e) => handleInputChange('phone', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                           placeholder="080xxxxxxxx"
                         />
                       </div>
@@ -752,7 +758,7 @@ const handlePaymentSuccess = async (response) => {
                           type="text"
                           value={shippingInfo.address}
                           onChange={(e) => handleInputChange('address', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                           placeholder="Enter your full address"
                         />
                       </div>
@@ -765,7 +771,7 @@ const handlePaymentSuccess = async (response) => {
                           type="text"
                           value={shippingInfo.city}
                           onChange={(e) => handleInputChange('city', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                           placeholder="Enter your city"
                         />
                       </div>
@@ -777,7 +783,7 @@ const handlePaymentSuccess = async (response) => {
                         <select
                           value={shippingInfo.state}
                           onChange={(e) => handleInputChange('state', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         >
                           <option value="">Select a state</option>
                           {nigerianStates.map(state => (
@@ -794,7 +800,7 @@ const handlePaymentSuccess = async (response) => {
                           type="text"
                           value={shippingInfo.zipCode}
                           onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                           placeholder="Optional"
                         />
                       </div>
@@ -833,14 +839,14 @@ const handlePaymentSuccess = async (response) => {
 
             {/* Step 2: Payment Method */}
             {currentStep === 2 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <div className="flex items-center mb-6">
                   <CreditCard className="w-5 h-5 text-red-500 mr-2" />
                   <h2 className="text-lg font-semibold text-gray-800">Payment Method</h2>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="border border-gray-300 rounded-lg p-4">
+                  <div className="border border-gray-300 rounded-lg p-3 sm:p-4">
                     <label className="flex items-center">
                       <input
                         type="radio"
@@ -875,9 +881,9 @@ const handlePaymentSuccess = async (response) => {
                 </div>
 
                 {/* Security Notice */}
-                <div className="mt-6 flex items-center p-3 bg-green-50 rounded-lg">
-                  <Shield className="w-5 h-5 text-green-500 mr-3" />
-                  <div className="text-sm text-green-800">
+               <div className="mt-6 flex items-start sm:items-center p-3 bg-green-50 rounded-lg">
+  <Shield className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5 sm:mt-0" />
+  <div className="text-xs sm:text-sm text-green-800">
                     Your payment information is secure and encrypted. We use Paystack for safe transactions.
                   </div>
                 </div>
@@ -886,24 +892,24 @@ const handlePaymentSuccess = async (response) => {
           </div>
 
           {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm sticky top-8">
+          <div className="lg:col-span-1 mt-6 lg:mt-0">
+  <div className="bg-white rounded-xl shadow-sm lg:sticky lg:top-8">
               {/* Summary Header */}
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-4 sm:p-6 border-b border-gray-100">
                 <h2 className="text-lg font-semibold text-gray-800">Order Summary</h2>
               </div>
 
               {/* Order Items */}
-              <div className="p-6 max-h-64 overflow-y-auto">
+            <div className="p-4 sm:p-6 max-h-48 sm:max-h-64 overflow-y-auto">
                 {cartItems.map((item, index) => (
-                  <div key={`${item.productId}-${index}`} className="flex items-center gap-3 mb-4 last:mb-0">
+                <div key={`${item.productId}-${index}`} className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 last:mb-0">
                     <img 
                       src={item.image || '/api/placeholder/50/50'} 
                       alt={item.name}
-                      className="w-12 h-12 object-cover rounded-lg bg-gray-100"
+                      className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg bg-gray-100 flex-shrink-0"
                     />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-gray-800 truncate">
+                   <div className="flex-1 min-w-0">
+  <h3 className="text-xs sm:text-sm font-medium text-gray-800 truncate">
                         {item.name}
                       </h3>
                       <div className="text-xs text-gray-500">
@@ -919,13 +925,13 @@ const handlePaymentSuccess = async (response) => {
               </div>
 
               {/* Summary Calculations */}
-              <div className="p-6 border-t border-gray-100 space-y-3">
-                <div className="flex justify-between text-gray-600">
+              <div className="p-4 sm:p-6 border-t border-gray-100 space-y-2 sm:space-y-3">
+                <div className="flex justify-between text-sm sm:text-base text-gray-600">
                   <span>Subtotal ({cartItems.length} items)</span>
                   <span>₦{subtotal.toLocaleString()}</span>
                 </div>
 
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-sm sm:text-base text-gray-600">
                   <span>Shipping</span>
                   <span>
                     {shipping === 0 ? (
@@ -936,14 +942,14 @@ const handlePaymentSuccess = async (response) => {
                   </span>
                 </div>
 
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-sm sm:text-base text-gray-600">
                   <span>Tax</span>
                   <span>₦{tax.toLocaleString()}</span>
                 </div>
 
                 <hr className="border-gray-200" />
 
-                <div className="flex justify-between text-lg font-bold text-gray-800">
+                <div className="flex justify-between text-base sm:text-lg font-bold text-gray-800">
                   <span>Total</span>
                   <span>₦{total.toLocaleString()}</span>
                 </div>
@@ -952,7 +958,7 @@ const handlePaymentSuccess = async (response) => {
                 <button 
                   onClick={handleCheckout}
                   disabled={processing}
-                  className="w-full bg-red-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-6"
+                  className="w-full bg-red-500 text-white py-3 sm:py-3.5 px-4 rounded-lg text-sm sm:text-base font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-4 sm:mt-6"
                 >
                   {processing ? (
                     <div className="flex items-center justify-center gap-2">
@@ -967,7 +973,7 @@ const handlePaymentSuccess = async (response) => {
                 </button>
 
                 {/* Security Notice */}
-                <div className="text-xs text-gray-500 text-center mt-4">
+                <div className="text-xs text-gray-500 text-center mt-3 sm:mt-4">
                   🔒 Secure checkout with SSL encryption
                 </div>
               </div>

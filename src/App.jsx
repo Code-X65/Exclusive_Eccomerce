@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ProtectedRoute } from './Components/ProtectedRoute'
 import HomePage from './Pages/HomePage'
 import Navbar from './Components/Navbar'
@@ -105,11 +105,11 @@ const App = () => {
       </div>
     )}
     
-    <Router>
+    <Router basename="/Exclusive_Eccomerce">
       <AuthProvider setIsLoading={setIsLoading}>
         <NavigationProgressBar />
         <ScrollToTop />
-        <Routes>
+        <Routes >
           {/* Inline layout using react-router Outlet so we don't depend on BaseLayout component file */}
           <Route element={<>
             <Navbar />

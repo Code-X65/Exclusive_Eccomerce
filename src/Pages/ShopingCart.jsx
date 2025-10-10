@@ -1,27 +1,7 @@
 import { useState } from 'react';
-import product01 from '../assets/Images/products/Product01.png'
-import product02 from '../assets/Images/products/Product02.png'
-import product03 from '../assets/Images/products/Product03.png'
+
 export default function ShoppingCart() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'LCD Monitor',
-      price: 550,
-      quantity: 1,
-      image: product01,
-    },
-    {
-      id: 2,
-      name: 'HI Gamepad',
-      price: 550,
-      quantity: 2,
-      image: product02, 
-    },
-    {
-      
-    }
-  ]);
+  const [cartItems, setCartItems] = useState([]);
   
   const [couponCode, setCouponCode] = useState('');
 

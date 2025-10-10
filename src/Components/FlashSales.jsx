@@ -4,17 +4,7 @@ import { collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion } from 
 import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from './firebase';
-// Mock product images
-import product01 from '../assets/Images/products/Product01.png'
-import product02 from '../assets/Images/products/Product02.png'
-import product03 from '../assets/Images/products/Product03.png'
-import product04 from '../assets/Images/products/Product04.png'
-import product05 from '../assets/Images/products/Product05.png'
-import product06 from '../assets/Images/products/Product06.png'
-import product07 from '../assets/Images/products/Product07.png'
-import product08 from '../assets/Images/products/Product08.png'
-import product09 from '../assets/Images/products/Product09.png'
-import product10 from '../assets/Images/products/Product10.png'
+
 
 export default function FlashSales() {
   // Countdown Timer State

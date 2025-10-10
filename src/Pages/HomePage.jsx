@@ -7,6 +7,7 @@ import Categories from '../Components/Categories'
 import ProductExplore from '../Components/ProductExplore'
 import NewArrival from '../Components/NewArrival'
 import CompanyFeatures from '../Components/CompanyFeatures'
+import SmartWatchBanner from '../Components/SmartWatchBanner'
 
 const HomePage = () => {
   return (
@@ -14,6 +15,7 @@ const HomePage = () => {
       <Hero />
       <FlashSales />
       <Category />
+      <SmartWatchBanner />
       <BestSelling />
       <Categories />
       <NewArrival  />

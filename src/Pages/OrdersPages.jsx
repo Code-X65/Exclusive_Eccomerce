@@ -6,7 +6,26 @@ import { onAuthStateChanged } from 'firebase/auth';
 // Import your Firebase config - adjust path as needed
 import { db, auth } from '../Components/firebase';
 
+const styles = `
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fadeInUp {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+`;
+
+
 const OrdersPage = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+const ordersPerPage = 8;
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,22 +92,33 @@ const OrdersPage = () => {
   };
 
   // Filter and sort orders
-  const filteredAndSortedOrders = orders
-    .filter(order => filterStatus === 'all' || order.status === filterStatus)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'oldest':
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        case 'amount_high':
-          return (b.orderSummary?.total || 0) - (a.orderSummary?.total || 0);
-        case 'amount_low':
-          return (a.orderSummary?.total || 0) - (b.orderSummary?.total || 0);
-        default:
-          return 0;
-      }
-    });
+const filteredAndSortedOrders = orders
+  .filter(order => filterStatus === 'all' || order.status === filterStatus)
+  .sort((a, b) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case 'oldest':
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case 'amount_high':
+        return (b.orderSummary?.total || 0) - (a.orderSummary?.total || 0);
+      case 'amount_low':
+        return (a.orderSummary?.total || 0) - (b.orderSummary?.total || 0);
+      default:
+        return 0;
+    }
+  });
+
+// Pagination calculations
+const totalPages = Math.ceil(filteredAndSortedOrders.length / ordersPerPage);
+const indexOfLastOrder = currentPage * ordersPerPage;
+const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+const currentOrders = filteredAndSortedOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+// Reset to page 1 when filters change
+useEffect(() => {
+  setCurrentPage(1);
+}, [filterStatus, sortBy]);
 
   // Format date
   const formatDate = (date) => {
@@ -107,6 +137,7 @@ const OrdersPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+
         <div className="text-center">
           <Package className="w-8 h-8 animate-pulse text-red-500 mx-auto mb-4" />
           <p className="text-gray-600">Loading your orders...</p>
@@ -254,8 +285,9 @@ const OrdersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+   <div className="min-h-screen bg-gray-50">
+    <style>{styles}</style>
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Header */}
        <div className="mb-4 sm:mb-8">
   <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-0">
@@ -348,11 +380,15 @@ const OrdersPage = () => {
 </div>
         ) : (
           <div className="space-y-4">
-            {filteredAndSortedOrders.map((order) => {
+           {currentOrders.map((order, idx) => {
               const StatusIcon = orderStatuses[order.status]?.icon || Clock;
               
               return (
-               <div key={order.id} className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+               <div 
+  key={order.id} 
+  className="bg-white rounded-xl shadow-sm p-4 sm:p-6 animate-fadeInUp"
+  style={{ animationDelay: `${idx * 0.1}s`, opacity: 0 }}
+>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
     <div className="flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
@@ -412,6 +448,45 @@ const OrdersPage = () => {
             })}
           </div>
         )}
+
+        {/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="flex items-center justify-center gap-4 mt-8">
+    <button
+      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+      disabled={currentPage === 1}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+        currentPage === 1
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          : 'bg-red-500 text-white hover:bg-red-600'
+      }`}
+    >
+      <ArrowLeft size={16} />
+      <span className="hidden sm:inline">Previous</span>
+      <span className="sm:hidden">Prev</span>
+    </button>
+    
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-gray-600">
+        Page {currentPage} of {totalPages}
+      </span>
+    </div>
+    
+    <button
+      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+      disabled={currentPage === totalPages}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+        currentPage === totalPages
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          : 'bg-red-500 text-white hover:bg-red-600'
+      }`}
+    >
+      <span className="hidden sm:inline">Next</span>
+      <span className="sm:hidden">Next</span>
+      <ArrowLeft size={16} className="rotate-180" />
+    </button>
+  </div>
+)}
 
         {/* Order Details Modal */}
         {selectedOrder && (

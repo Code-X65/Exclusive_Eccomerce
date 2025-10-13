@@ -49,7 +49,7 @@ useEffect(() => {
          transition: 'transform 0.3s ease-out'
        }}>
     <img src={PlayStation} className='bg-black rounded-sm h-full px-4 pt-8 transform group-hover:scale-110 transition-transform duration-500' alt="" />
-    <div className='absolute bottom-0 opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-4 sm:p-6 z-10 transition-all duration-300 group-hover:px-6 sm:group-hover:px-10'>
+    <div className='absolute bottom-0 sm:opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-4 sm:p-6 z-10 transition-all duration-300 group-hover:px-6 sm:group-hover:px-10'>
       <h1 className='text-lg sm:text-xl font-semibold mb-2 sm:mb-4'>PlayStation 5</h1>
       <p className='text-xs sm:text-sm mb-2'>Black and white Version of the PS5 <br/> Coming out on side</p>
       <p className='border-b-2 border-gray-500 inline-block w-20 hover:font-semibold hover:w-32 transition-all duration-300 cursor-pointer'>Shop Now</p>
@@ -57,14 +57,14 @@ useEffect(() => {
   </div>
 </div>
         </div>
-        <div className={`grid md:grid-rows-2 gap-2 transform transition-all duration-1000 delay-200 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+        <div className={`grid md:grid-rows-2 gap-2 transform transition-all duration-1000 delay-200 ${isVisible ? 'translate-y-0 sm:opacity-100' : 'translate-y-20 opacity-0'}`}>
 <div className='relative group overflow-hidden rounded-lg'
      style={{
        transform: isVisible ? `perspective(1000px) rotateX(${Math.sin(scrollY * 0.003) * 3}deg)` : 'none',
        transition: 'transform 0.3s ease-out'
      }}>
   <img src={Woman} className='bg-black rounded-sm w-full transform group-hover:scale-110 transition-transform duration-500' alt="" />
-  <div className='absolute bottom-0 opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-4 sm:p-6 z-10 transition-all duration-300 group-hover:px-6 sm:group-hover:px-10'>
+  <div className='absolute bottom-0 sm:opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-4 sm:p-6 z-10 transition-all duration-300 group-hover:px-6 sm:group-hover:px-10'>
     <h1 className='text-lg sm:text-xl font-semibold mb-2 sm:mb-4'>Women's Collections</h1>
     <p className='text-xs sm:text-sm mb-2'>Featured woman collections that <br/> give you another vibe</p>
     <p className='border-b-2 border-gray-500 inline-block w-20 hover:font-semibold hover:w-32 transition-all duration-300 cursor-pointer'>Shop Now</p>
@@ -77,7 +77,7 @@ useEffect(() => {
        transition: 'transform 0.3s ease-out'
      }}>
   <img src={Speaker} className='bg-black rounded-sm w-full h-full p-4 sm:p-8 transform group-hover:scale-110 transition-transform duration-500' alt="" />
-  <div className='absolute bottom-0 opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-3 sm:p-6 z-10 transition-all duration-300 group-hover:px-4 sm:group-hover:px-10'>
+  <div className='absolute bottom-0 sm:opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-3 sm:p-6 z-10 transition-all duration-300 group-hover:px-4 sm:group-hover:px-10'>
     <h1 className='text-base sm:text-xl font-semibold mb-2 sm:mb-4'>Speakers</h1>
     <p className='text-xs sm:text-sm mb-2'>Amazon wireless speaker</p>
     <p className='border-b-2 border-gray-500 inline-block w-20 hover:font-semibold hover:w-32 transition-all duration-300 cursor-pointer'>Shop Now</p>
@@ -89,7 +89,7 @@ useEffect(() => {
        transition: 'transform 0.3s ease-out'
      }}>
   <img src={Perfume} className='bg-black rounded-sm w-full h-full p-4 sm:p-8 transform group-hover:scale-110 transition-transform duration-500' alt="" />
-  <div className='absolute bottom-0 opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-3 sm:p-6 z-10 transition-all duration-300 group-hover:px-4 sm:group-hover:px-10'>
+  <div className='absolute bottom-0 sm:opacity-0 md:opacity-40 group-hover:opacity-100 text-white p-3 sm:p-6 z-10 transition-all duration-300 group-hover:px-4 sm:group-hover:px-10'>
     <h1 className='text-base sm:text-xl font-semibold mb-2 sm:mb-4'>Perfume</h1>
     <p className='text-xs sm:text-sm mb-2 uppercase'>Gucci Intense Qud Edp</p>
     <p className='border-b-2 border-gray-500 inline-block w-20 hover:font-semibold hover:w-32 transition-all duration-300 cursor-pointer'>Shop Now</p>

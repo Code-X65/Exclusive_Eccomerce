@@ -892,7 +892,7 @@ const handlePaymentSuccess = async (response) => {
           </div>
 
           {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1 mt-6 lg:mt-0">
+         <div className="lg:col-span-1">
   <div className="bg-white rounded-xl shadow-sm lg:sticky lg:top-8">
               {/* Summary Header */}
               <div className="p-4 sm:p-6 border-b border-gray-100">

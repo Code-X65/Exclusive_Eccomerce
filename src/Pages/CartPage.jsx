@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Loader2 } from 'lucide-react';
 import { doc, getDoc, updateDoc, arrayRemove, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-
+import { useNavigate } from 'react-router-dom';
 // Import your Firebase config - adjust path as needed
 import { db, auth } from '../Components/firebase';
 import { Link } from 'react-router-dom';
@@ -13,9 +13,16 @@ const CartPage = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+const handleProductClick = (productId) => {
+  navigate(`/product/${productId}`);
+};
 
   // HOOKS MUST BE AT THE TOP - BEFORE ANY RETURNS
   // Listen for auth state changes
+
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -140,16 +147,16 @@ const CartPage = () => {
     }
   };
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08; // 8% tax
-  const shipping = cartItems.length > 0 ? (subtotal > 100 ? 0 : 10) : 0; // Free shipping over $100
-  const total = subtotal + tax + shipping;
+ // Calculate totals
+const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+const shipping = totalQuantity * 800; // ₦800 per item quantity
+const total = subtotal + shipping;
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-4" />
           <p className="text-gray-600">Loading your cart...</p>
@@ -161,7 +168,7 @@ const CartPage = () => {
   // Not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Please Sign In</h2>
@@ -180,7 +187,7 @@ const CartPage = () => {
   // Empty cart state
   if (cartItems.length === 0 && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center mb-8">
@@ -190,7 +197,7 @@ const CartPage = () => {
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-2xl font-bold text-gray-800">Shopping Cart</h1>
+            <h1 className="text-2xl font-bold text-gray-100">Shopping Cart</h1>
           </div>
 
           {/* Error Message */}
@@ -225,7 +232,7 @@ const CartPage = () => {
 
   // Main cart view
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -236,7 +243,7 @@ const CartPage = () => {
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-2xl font-bold text-gray-800">Shopping Cart</h1>
+            <h1 className="text-2xl font-bold text-gray-100">Shopping Cart</h1>
           </div>
           
           {cartItems.length > 0 && (
@@ -278,89 +285,102 @@ const CartPage = () => {
               </div>
 
               {/* Cart Items List */}
-              <div className="divide-y divide-gray-100">
-                {cartItems.map((item, index) => (
-                  <div key={`${item.productId}-${index}`} className="p-6">
-                    <div className="flex items-start gap-4">
-                      {/* Product Image */}
-                      <div className="flex-shrink-0">
-                        <img 
-                          src={item.image || '/api/placeholder/120/120'} 
-                          alt={item.name}
-                          className="w-20 h-20 object-cover rounded-lg bg-gray-100"
-                        />
-                      </div>
+            <div className="divide-y divide-gray-100">
+  {cartItems.map((item, index) => (
+    <div 
+      key={`${item.productId}-${index}`} 
+      className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+      onClick={() => handleProductClick(item.productId)}
+    >
+      <div className="flex items-start gap-4">
+        {/* Product Image */}
+        <div className="flex-shrink-0">
+          <img 
+            src={item.image || '/api/placeholder/120/120'} 
+            alt={item.name}
+            className="w-20 h-20 object-cover rounded-lg bg-gray-100"
+          />
+        </div>
 
-                      {/* Product Details */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-800 mb-1 line-clamp-2">
-                          {item.name}
-                        </h3>
-                        
-                        {/* Product Variants */}
-                        <div className="text-sm text-gray-500 mb-3">
-                          {item.selectedSize && (
-                            <span className="mr-4">Size: {item.selectedSize}</span>
-                          )}
-                          {item.selectedColor && (
-                            <span>Color: {item.selectedColor}</span>
-                          )}
-                        </div>
+        {/* Product Details */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-gray-800 mb-1 line-clamp-2 hover:text-red-600 transition-colors">
+            {item.name}
+          </h3>
+          
+          {/* Product Variants */}
+          <div className="text-sm text-gray-500 mb-3">
+            {item.selectedSize && (
+              <span className="mr-4">Size: {item.selectedSize}</span>
+            )}
+            {item.selectedColor && (
+              <span>Color: {item.selectedColor}</span>
+            )}
+          </div>
 
-                        {/* Price and Actions */}
-                        <div className="flex items-center justify-between">
-                          <div className="text-lg font-semibold text-gray-800">
-                            ₦{item.price?.toLocaleString()}
-                          </div>
+          {/* Price and Actions */}
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold text-gray-800">
+              ₦{item.price?.toLocaleString()}
+            </div>
 
-                          {/* Quantity Controls */}
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center border border-gray-300 rounded-lg">
-                              <button 
-                                onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                                disabled={updating || item.quantity <= 1}
-                                className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Minus size={16} />
-                              </button>
-                              
-                              <span className="px-4 py-2 min-w-[60px] text-center">
-                                {item.quantity}
-                              </span>
-                              
-                              <button 
-                                onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                                disabled={updating}
-                                className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Plus size={16} />
-                              </button>
-                            </div>
-
-                            {/* Remove Button */}
-                            <button 
-                              onClick={() => removeFromCart(item.productId)}
-                              disabled={updating}
-                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Remove item"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Item Total */}
-                        <div className="mt-2 text-right">
-                          <span className="text-sm text-gray-500">Subtotal: </span>
-                          <span className="font-medium text-gray-800">
-                            ₦{(item.price * item.quantity).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {/* Quantity Controls */}
+            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center border border-gray-300 rounded-lg">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateQuantity(item.productId, item.quantity - 1);
+                  }}
+                  disabled={updating || item.quantity <= 1}
+                  className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Minus size={16} />
+                </button>
+                
+                <span className="px-4 py-2 min-w-[60px] text-center">
+                  {item.quantity}
+                </span>
+                
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateQuantity(item.productId, item.quantity + 1);
+                  }}
+                  disabled={updating}
+                  className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus size={16} />
+                </button>
               </div>
+
+              {/* Remove Button */}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeFromCart(item.productId);
+                }}
+                disabled={updating}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Remove item"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Item Total */}
+          <div className="mt-2 text-right">
+            <span className="text-sm text-gray-500">Subtotal: </span>
+            <span className="font-medium text-gray-800">
+              ₦{(item.price * item.quantity).toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
             </div>
           </div>
 
@@ -372,80 +392,60 @@ const CartPage = () => {
                 <h2 className="text-lg font-semibold text-gray-800">Order Summary</h2>
               </div>
 
+             
               {/* Summary Details */}
-              <div className="p-6 space-y-4">
-                {/* Subtotal */}
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal ({cartItems.length} items)</span>
-                  <span>₦{subtotal.toLocaleString()}</span>
-                </div>
+<div className="p-6 space-y-4">
+  {/* Subtotal */}
+  <div className="flex justify-between text-gray-600">
+    <span>Subtotal ({cartItems.length} items)</span>
+    <span>₦{subtotal.toLocaleString()}</span>
+  </div>
 
-                {/* Shipping */}
-                <div className="flex justify-between text-gray-600">
-                  <span>Shipping</span>
-                  <span>
-                    {shipping === 0 ? (
-                      <span className="text-green-600 font-medium">Free</span>
-                    ) : (
-                      `₦${shipping.toLocaleString()}`
-                    )}
-                  </span>
-                </div>
+  {/* Shipping */}
+  <div className="flex justify-between text-gray-600">
+    <span>Shipping ({totalQuantity} {totalQuantity === 1 ? 'item' : 'items'} × ₦800)</span>
+    <span>₦{shipping.toLocaleString()}</span>
+  </div>
 
-                {/* Tax */}
-                <div className="flex justify-between text-gray-600">
-                  <span>Tax</span>
-                  <span>₦{tax.toLocaleString()}</span>
-                </div>
+  {/* Divider */}
+  <hr className="border-gray-200" />
 
-                {/* Free Shipping Notice */}
-                {shipping > 0 && subtotal < 100 && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-sm text-blue-800">
-                      Add ₦{(100 - subtotal).toLocaleString()} more for free shipping!
-                    </p>
-                  </div>
-                )}
+  {/* Total */}
+  <div className="flex justify-between text-lg font-bold text-gray-800">
+    <span>Total</span>
+    <span>₦{total.toLocaleString()}</span>
+  </div>
 
-                {/* Divider */}
-                <hr className="border-gray-200" />
+  {/* Checkout Button */}
+  <Link to="/checkout"> 
+  <button 
+    disabled={updating || cartItems.length === 0}
+    className="w-full bg-red-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-6"
+  >
+    {updating ? (
+      <div className="flex items-center justify-center gap-2">
+        <Loader2 size={16} className="animate-spin" />
+        Processing...
+      </div>
+    ) : (
+      'Proceed to Checkout'
+    )}
+  </button>
+  </Link>
 
-                {/* Total */}
-                <div className="flex justify-between text-lg font-bold text-gray-800">
-                  <span>Total</span>
-                  <span>₦{total.toLocaleString()}</span>
-                </div>
+  {/* Continue Shopping */}
+  <button 
+    onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
+    className="w-full bg-gray-100 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+  >
+    Continue Shopping
+  </button>
 
-                {/* Checkout Button */}
-                <Link to="/checkout"> 
-                <button 
-                  disabled={updating || cartItems.length === 0}
-                  className="w-full bg-red-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-6"
-                >
-                  {updating ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 size={16} className="animate-spin" />
-                      Processing...
-                    </div>
-                  ) : (
-                    'Proceed to Checkout'
-                  )}
-                </button>
-                </Link>
-
-                {/* Continue Shopping */}
-                <button 
-                  onClick={() => window.location.href = '/Exclusive_Eccomerce/products'}
-                  className="w-full bg-gray-100 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                >
-                  Continue Shopping
-                </button>
-
-                {/* Security Notice */}
-                <div className="text-xs text-gray-500 text-center mt-4">
-                  🔒 Secure checkout with SSL encryption
-                </div>
-              </div>
+  {/* Security Notice */}
+  <div className="text-xs text-gray-500 text-center mt-4">
+    🔒 Secure checkout with SSL encryption
+  </div>
+</div>
             </div>
           </div>
         </div>

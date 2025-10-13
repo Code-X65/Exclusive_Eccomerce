@@ -215,11 +215,11 @@ const CheckoutPage = () => {
   loadEmailJS().catch(error => console.warn('Failed to load EmailJS:', error));
 }, []);
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08; // 8% tax
-  const shipping = cartItems.length > 0 ? (subtotal > 100000 ? 0 : 2500) : 0; // Free shipping over ₦100,000
-  const total = subtotal + tax + shipping;
+ // Calculate totals
+const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+const shipping = totalQuantity * 800; // ₦800 per item quantity
+const total = subtotal + shipping;
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
@@ -376,25 +376,24 @@ const handlePaymentSuccess = async (response) => {
     setError('');
 
     // Create order in Firestore
-    const orderData = {
-      userId: user.uid,
-      items: cartItems,
-      shippingInfo,
-      paymentInfo: {
-        method: paymentMethod,
-        reference: response.reference,
-        status: 'completed'
-      },
-      orderSummary: {
-        subtotal,
-        tax,
-        shipping,
-        total
-      },
-      status: 'processing',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
+   const orderData = {
+  userId: user.uid,
+  items: cartItems,
+  shippingInfo,
+  paymentInfo: {
+    method: paymentMethod,
+    reference: response.reference,
+    status: 'completed'
+  },
+  orderSummary: {
+    subtotal,
+    shipping,
+    total
+  },
+  status: 'processing',
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+};
 
     // Save order to Firestore
     const orderRef = await addDoc(collection(db, 'orders'), orderData);
@@ -924,59 +923,48 @@ const handlePaymentSuccess = async (response) => {
                 ))}
               </div>
 
-              {/* Summary Calculations */}
-              <div className="p-4 sm:p-6 border-t border-gray-100 space-y-2 sm:space-y-3">
-                <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                  <span>Subtotal ({cartItems.length} items)</span>
-                  <span>₦{subtotal.toLocaleString()}</span>
-                </div>
+             {/* Summary Calculations */}
+<div className="p-4 sm:p-6 border-t border-gray-100 space-y-2 sm:space-y-3">
+  <div className="flex justify-between text-sm sm:text-base text-gray-600">
+    <span>Subtotal ({cartItems.length} items)</span>
+    <span>₦{subtotal.toLocaleString()}</span>
+  </div>
 
-                <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                  <span>Shipping</span>
-                  <span>
-                    {shipping === 0 ? (
-                      <span className="text-green-600 font-medium">Free</span>
-                    ) : (
-                      `₦${shipping.toLocaleString()}`
-                    )}
-                  </span>
-                </div>
+  <div className="flex justify-between text-sm sm:text-base text-gray-600">
+    <span>Shipping ({totalQuantity} {totalQuantity === 1 ? 'item' : 'items'} × ₦800)</span>
+    <span>₦{shipping.toLocaleString()}</span>
+  </div>
 
-                <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                  <span>Tax</span>
-                  <span>₦{tax.toLocaleString()}</span>
-                </div>
+  <hr className="border-gray-200" />
 
-                <hr className="border-gray-200" />
+  <div className="flex justify-between text-base sm:text-lg font-bold text-gray-800">
+    <span>Total</span>
+    <span>₦{total.toLocaleString()}</span>
+  </div>
 
-                <div className="flex justify-between text-base sm:text-lg font-bold text-gray-800">
-                  <span>Total</span>
-                  <span>₦{total.toLocaleString()}</span>
-                </div>
+  {/* Checkout Button */}
+  <button 
+    onClick={handleCheckout}
+    disabled={processing}
+    className="w-full bg-red-500 text-white py-3 sm:py-3.5 px-4 rounded-lg text-sm sm:text-base font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-4 sm:mt-6"
+  >
+    {processing ? (
+      <div className="flex items-center justify-center gap-2">
+        <Loader2 size={16} className="animate-spin" />
+        Processing...
+      </div>
+    ) : currentStep === 1 ? (
+      'Continue to Payment'
+    ) : (
+      'Place Order'
+    )}
+  </button>
 
-                {/* Checkout Button */}
-                <button 
-                  onClick={handleCheckout}
-                  disabled={processing}
-                  className="w-full bg-red-500 text-white py-3 sm:py-3.5 px-4 rounded-lg text-sm sm:text-base font-medium hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors mt-4 sm:mt-6"
-                >
-                  {processing ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 size={16} className="animate-spin" />
-                      Processing...
-                    </div>
-                  ) : currentStep === 1 ? (
-                    'Continue to Payment'
-                  ) : (
-                    'Place Order'
-                  )}
-                </button>
-
-                {/* Security Notice */}
-                <div className="text-xs text-gray-500 text-center mt-3 sm:mt-4">
-                  🔒 Secure checkout with SSL encryption
-                </div>
-              </div>
+  {/* Security Notice */}
+  <div className="text-xs text-gray-500 text-center mt-3 sm:mt-4">
+    🔒 Secure checkout with SSL encryption
+  </div>
+</div>
             </div>
           </div>
         </div>

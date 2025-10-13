@@ -44,6 +44,8 @@
     const [addingToCart, setAddingToCart] = useState(false);
     const [addingToWishlist, setAddingToWishlist] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
+const [cartItemQuantity, setCartItemQuantity] = useState(0);
     
     // State for product data
     const [product, setProduct] = useState(null);
@@ -65,45 +67,64 @@
     ];
     const sizeOptions = ['XS', 'S', 'M', 'L', 'XL'];
     
-  const handleAddToCart = async () => {
-    if (!user) {
-      alert('Please log in to add items to cart');
-      return;
-    }
+const handleAddToCart = async () => {
+  if (!user) {
+    alert('Please log in to add items to cart');
+    return;
+  }
 
-    if (product.stockQuantity === 0) {
-      return;
-    }
+  if (product.stockQuantity === 0) {
+    return;
+  }
 
-    try {
-      setAddingToCart(true);
+  try {
+    setAddingToCart(true);
 
-      const cartItem = {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        image: productImages[0] || '/api/placeholder/400/400',
-        quantity: quantity,
-        selectedSize: selectedSize,
-        selectedColor: selectedColor,
-        addedAt: new Date().toISOString()
-      };
-
-      const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const currentCart = userData.cart || [];
       
-      // Use setDoc with merge to create document if it doesn't exist
-      await setDoc(userDocRef, {
-        cart: arrayUnion(cartItem)
-      }, { merge: true });
-
-      alert('Product added to cart successfully!');
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('Failed to add product to cart. Please try again.');
-    } finally {
-      setAddingToCart(false);
+      // Find existing item
+      const existingItemIndex = currentCart.findIndex(item => item.productId === product.id);
+      
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        currentCart[existingItemIndex].quantity = quantity;
+        await updateDoc(userDocRef, { cart: currentCart });
+        setCartItemQuantity(quantity);
+        alert('Cart updated successfully!');
+      } else {
+        // Add new item
+        const cartItem = {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: productImages[0] || '/api/placeholder/400/400',
+          quantity: quantity,
+          selectedSize: selectedSize,
+          selectedColor: selectedColor,
+          addedAt: new Date().toISOString()
+        };
+        
+        await setDoc(userDocRef, {
+          cart: arrayUnion(cartItem)
+        }, { merge: true });
+        
+        setIsInCart(true);
+        setCartItemQuantity(quantity);
+        alert('Product added to cart successfully!');
+      }
     }
-  };
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Failed to add product to cart. Please try again.');
+  } finally {
+    setAddingToCart(false);
+  }
+};
   const handleAddToCartRelated = async (product) => {
     const currentUser = auth.currentUser;
 
@@ -388,13 +409,64 @@
     checkWishlistStatus();
   }, [user, product]);
 
-    // Handle quantity change
-    const handleQuantityChange = (change) => {
-      const newQuantity = quantity + change;
-      if (newQuantity >= 1 && newQuantity <= (product?.stockQuantity || 999)) {
-        setQuantity(newQuantity);
+  useEffect(() => {
+  const checkCartStatus = async () => {
+    if (!user || !product) return;
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const cart = userData.cart || [];
+        const cartItem = cart.find(item => item.productId === product.id);
+        if (cartItem) {
+          setIsInCart(true);
+          setCartItemQuantity(cartItem.quantity);
+          setQuantity(cartItem.quantity);
+        } else {
+          setIsInCart(false);
+          setCartItemQuantity(0);
+        }
       }
-    };
+    } catch (error) {
+      console.error('Error checking cart status:', error);
+    }
+  };
+
+  checkCartStatus();
+}, [user, product]);
+    // Handle quantity change
+const handleQuantityChange = async (change) => {
+  const newQuantity = quantity + change;
+  if (newQuantity >= 1 && newQuantity <= (product?.stockQuantity || 999)) {
+    setQuantity(newQuantity);
+    
+    // Auto-update if item is already in cart
+    if (isInCart && user) {
+      try {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentCart = userData.cart || [];
+          const updatedCart = currentCart.map(item => 
+            item.productId === product.id 
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
+          
+          await updateDoc(userDocRef, { cart: updatedCart });
+          setCartItemQuantity(newQuantity);
+        }
+      } catch (error) {
+        console.error('Error updating cart:', error);
+      }
+    }
+  }
+};
 
     // Loading state
     if (loading) {
@@ -518,8 +590,22 @@
 </div>
           
          {/* Product Info Section */}
+{/* Product Info Section */}
 <div className="space-y-3 sm:space-y-4">
   <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-white">{product.name}</h1>
+  
+  {/* Brand & Model */}
+  <div className="flex items-center space-x-4 text-sm text-gray-600">
+    {product.brand && (
+      <span>Brand: <span className="font-medium text-gray-400">{product.brand}</span></span>
+    )}
+    {product.model && (
+      <span>Model: <span className="font-medium text-gray-400">{product.model}</span></span>
+    )}
+    {product.sku && (
+      <span>SKU: <span className="font-medium text-gray-400">{product.sku}</span></span>
+    )}
+  </div>
   
   {/* Ratings */}
   <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -546,8 +632,13 @@
   {/* Price */}
   <div className='flex items-center gap-2 sm:gap-4'>
     <div className="text-2xl sm:text-3xl font-bold text-white">₦{product.price?.toLocaleString()}</div>
-    {product.originalPrice && (
-      <div className="text-gray-500 line-through text-sm sm:text-base">₦{product.originalPrice?.toLocaleString()}</div>
+    {product.originalPrice && product.originalPrice > product.price && (
+      <>
+        <div className="text-gray-500 line-through text-sm sm:text-base">₦{product.originalPrice?.toLocaleString()}</div>
+        <span className="text-green-400 text-xs sm:text-sm font-medium bg-green-500/20 px-2 py-1 rounded">
+          Save {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+        </span>
+      </>
     )}
   </div>
 
@@ -557,21 +648,56 @@
   </p>
 
   {/* Colors */}
-  <div>
-    <span className="block text-sm font-medium text-gray-300 mb-2">Colours:</span>
-    <div className="flex space-x-2">
-      {colorOptions.map((color) => (
-        <button
-          key={color.name}
-          onClick={() => setSelectedColor(color.name)}
-          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full ${color.class} ${
-            selectedColor === color.name ? 'ring-2 ring-offset-2 ring-offset-gray-950 ring-red-500' : ''
-          }`}
-          aria-label={`Select ${color.name} color`}
-        />
-      ))}
+  {product.colors && product.colors.length > 0 && (
+    <div>
+      <span className="block text-sm font-medium text-gray-300 mb-2">Available Colors:</span>
+      <div className="flex flex-wrap gap-2">
+        {product.colors.map((color, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedColor(color.name)}
+            className={`flex items-center space-x-2 px-3 py-2 border-2 rounded-lg transition ${
+              selectedColor === color.name 
+                ? 'border-red-500 bg-red-500/10' 
+                : 'border-gray-700 bg-gray-900 hover:border-gray-600'
+            }`}
+            title={color.name}
+          >
+            <div
+              className="w-5 h-5 rounded-full border border-gray-600"
+              style={{ backgroundColor: color.hex }}
+            />
+            <span className="text-sm text-gray-300">{color.name}</span>
+          </button>
+        ))}
+      </div>
     </div>
-  </div>
+  )}
+
+  {/* Storage Options */}
+  {product.storageOptions && product.storageOptions.length > 0 && product.storageOptions[0].capacity && (
+    <div>
+      <span className="block text-sm font-medium text-gray-300 mb-2">Storage Options:</span>
+      <div className="flex flex-wrap gap-2">
+        {product.storageOptions.map((option, index) => (
+          option.capacity && (
+            <button
+              key={index}
+              onClick={() => setSelectedSize(option.capacity)}
+              className={`px-4 py-2 border-2 rounded-lg text-sm transition ${
+                selectedSize === option.capacity 
+                  ? 'border-red-500 bg-red-500/10 text-white' 
+                  : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
+              }`}
+            >
+              {option.capacity}
+              {option.price && <span className="text-gray-500 ml-1">(₦{option.price.toLocaleString()})</span>}
+            </button>
+          )
+        ))}
+      </div>
+    </div>
+  )}
   
   {/* Stock Info */}
   {product.stockQuantity > 0 && (
@@ -602,27 +728,35 @@
     </div>
     
     {/* Add to Cart Button */}
-    <button 
-      onClick={handleAddToCart}
-      disabled={product.stockQuantity === 0 || addingToCart}
-      className={`flex-1 px-4 sm:px-6 py-2 sm:py-2.5 rounded-md transition flex items-center justify-center gap-2 text-sm sm:text-base font-medium ${
-        product.stockQuantity > 0 && !addingToCart
-          ? 'bg-red-500 text-white hover:bg-red-600'
-          : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-      }`}
-    >
-      {addingToCart ? (
-        <>
-          <Loader2 size={16} className="animate-spin" />
-          <span className="hidden sm:inline">Adding...</span>
-        </>
-      ) : (
-        <>
-          <ShoppingCart size={16} />
-          <span>{product.stockQuantity > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
-        </>
-      )}
-    </button>
+  <button 
+  onClick={handleAddToCart}
+  disabled={product.stockQuantity === 0 || addingToCart}
+  className={`flex-1 px-4 sm:px-6 py-2 sm:py-2.5 rounded-md transition flex items-center justify-center gap-2 text-sm sm:text-base font-medium ${
+    product.stockQuantity > 0 && !addingToCart
+      ? isInCart 
+        ? 'bg-green-600 text-white hover:bg-green-700'
+        : 'bg-red-500 text-white hover:bg-red-600'
+      : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+  }`}
+>
+  {addingToCart ? (
+    <>
+      <Loader2 size={16} className="animate-spin" />
+      <span className="hidden sm:inline">{isInCart ? 'Updating...' : 'Adding...'}</span>
+    </>
+  ) : (
+    <>
+      <ShoppingCart size={16} />
+      <span>
+        {product.stockQuantity > 0 
+          ? isInCart 
+            ? 'Update Cart' 
+            : 'Add to Cart' 
+          : 'Out of Stock'}
+      </span>
+    </>
+  )}
+</button>
   </div>
 
   {/* Wishlist and Share - Mobile Full Width */}
@@ -726,6 +860,16 @@
       )}
     </div>
   </div>
+
+  {/* Warranty Info */}
+  {product.warranty && (
+    <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+      <div className="flex items-center space-x-2">
+        <span className="text-green-400 font-medium">✓</span>
+        <span className="text-sm text-green-400">Warranty: {product.warranty}</span>
+      </div>
+    </div>
+  )}
   
   {/* Delivery Info */}
   <div className="space-y-3 border-t border-gray-800 pt-4 mt-4">
@@ -754,6 +898,254 @@
   <p className="text-gray-400 text-sm lg:hidden pt-4 border-t border-gray-800">
     {product.description || 'No description available for this product.'}
   </p>
+
+  {/* Detailed Specifications Section - Mobile */}
+  <div className="lg:hidden pt-4 border-t border-gray-800">
+    <h4 className="font-medium text-gray-300 mb-3 text-sm">Product Specifications</h4>
+    
+    {/* Smartphone Specifications */}
+    {product.category === 'smartphones' && (
+      <div className="space-y-3">
+        {/* Memory */}
+        {(product.specifications?.memory?.ram || product.specifications?.memory?.storage) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Memory & Storage</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications?.memory?.ram && (
+                <div className="flex justify-between text-gray-400">
+                  <span>RAM:</span>
+                  <span className="text-white">{product.specifications.memory.ram}</span>
+                </div>
+              )}
+              {product.specifications?.memory?.storage && (
+                <div className="flex justify-between text-gray-400">
+                  <span>Storage:</span>
+                  <span className="text-white">{product.specifications.memory.storage}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Battery */}
+        {product.specifications?.battery?.capacity && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Battery</h5>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Security */}
+        {product.specifications?.security && Object.values(product.specifications.security).some(val => val) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Security Features</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications.security.faceRecognition && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Face Recognition</span>
+                </div>
+              )}
+              {product.specifications.security.fingerprint && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Fingerprint Scanner</span>
+                </div>
+              )}
+              {product.specifications.security.voiceRecognition && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Voice Recognition</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Smartwatch Specifications */}
+    {product.category === 'smartwatches' && (
+      <div className="space-y-3">
+        {product.specifications?.battery?.capacity && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Battery</h5>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        )}
+
+        {product.specifications?.charging && (product.specifications.charging.wireless || product.specifications.charging.wired) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Charging Methods</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications.charging.wireless && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Wireless Charging</span>
+                </div>
+              )}
+              {product.specifications.charging.wired && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Wired Charging</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {product.specifications?.waterResistance !== undefined && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Water Resistance</h5>
+            <div className="flex items-center space-x-2 text-xs text-gray-400">
+              <span className={product.specifications.waterResistance ? "text-green-400" : "text-red-400"}>
+                {product.specifications.waterResistance ? "✓" : "✗"}
+              </span>
+              <span>{product.specifications.waterResistance ? "Yes" : "No"}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Tablet Specifications */}
+    {product.category === 'tablets' && (
+      <div className="space-y-3">
+        {(product.specifications?.memory?.ram || product.specifications?.memory?.storage) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Memory & Storage</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications?.memory?.ram && (
+                <div className="flex justify-between text-gray-400">
+                  <span>RAM:</span>
+                  <span className="text-white">{product.specifications.memory.ram}</span>
+                </div>
+              )}
+              {product.specifications?.memory?.storage && (
+                <div className="flex justify-between text-gray-400">
+                  <span>Storage:</span>
+                  <span className="text-white">{product.specifications.memory.storage}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {product.specifications?.battery?.capacity && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Battery</h5>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        )}
+
+        {product.specifications?.security && Object.values(product.specifications.security).some(val => val) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Security Features</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications.security.faceRecognition && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Face Recognition</span>
+                </div>
+              )}
+              {product.specifications.security.fingerprint && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Fingerprint Scanner</span>
+                </div>
+              )}
+              {product.specifications.security.voiceRecognition && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Voice Recognition</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Laptop Specifications */}
+    {product.category === 'laptop' && (
+      <div className="space-y-3">
+        {product.specifications?.processor?.core && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Processor</h5>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Core:</span>
+              <span className="text-white">{product.specifications.processor.core}</span>
+            </div>
+          </div>
+        )}
+
+        {(product.specifications?.memory?.ram || product.specifications?.memory?.storage) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Memory & Storage</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications?.memory?.ram && (
+                <div className="flex justify-between text-gray-400">
+                  <span>RAM:</span>
+                  <span className="text-white">{product.specifications.memory.ram}</span>
+                </div>
+              )}
+              {product.specifications?.memory?.storage && (
+                <div className="flex justify-between text-gray-400">
+                  <span>Storage:</span>
+                  <span className="text-white">{product.specifications.memory.storage}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {product.specifications?.battery?.capacity && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Battery</h5>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        )}
+
+        {product.specifications?.features && Object.values(product.specifications.features).some(val => val) && (
+          <div className="bg-gray-900 border border-gray-800 p-3 rounded-lg">
+            <h5 className="font-medium text-gray-300 mb-2 text-xs">Features</h5>
+            <div className="space-y-1 text-xs">
+              {product.specifications.features.touchScreen && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Touch Screen</span>
+                </div>
+              )}
+              {product.specifications.features.keyboardBacklight && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Keyboard Backlight</span>
+                </div>
+              )}
+              {product.specifications.features.waterResistance && (
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <span className="text-green-400">✓</span>
+                  <span>Water Resistance</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
 
   {/* Key Features - Mobile Only */}
   {product.features && product.features.length > 0 && product.features[0] && (
@@ -806,6 +1198,268 @@
   )}
 </div>
         </div>
+{/* Detailed Specifications Section - Desktop Only */}
+<div className="hidden lg:block mt-8 border-t border-gray-800 pt-8">
+  <h3 className="text-xl font-semibold text-white mb-6">Product Specifications</h3>
+  
+  {/* Smartphone Specifications */}
+  {product.category === 'smartphones' && (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {(product.specifications?.memory?.ram || product.specifications?.memory?.storage) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Memory & Storage</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications?.memory?.ram && (
+              <div className="flex justify-between text-gray-400">
+                <span>RAM:</span>
+                <span className="text-white font-medium">{product.specifications.memory.ram}</span>
+              </div>
+            )}
+            {product.specifications?.memory?.storage && (
+              <div className="flex justify-between text-gray-400">
+                <span>Storage:</span>
+                <span className="text-white font-medium">{product.specifications.memory.storage}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.battery?.capacity && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+            <h4 className="font-medium text-gray-300 mb-3">Battery</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white font-medium">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.security && Object.values(product.specifications.security).some(val => val) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Security Features</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications.security.faceRecognition && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Face Recognition</span>
+              </div>
+            )}
+            {product.specifications.security.fingerprint && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Fingerprint Scanner</span>
+              </div>
+            )}
+            {product.specifications.security.voiceRecognition && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Voice Recognition</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* Smartwatch Specifications */}
+  {product.category === 'smartwatches' && (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {product.specifications?.battery?.capacity && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Battery</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white font-medium">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.charging && (product.specifications.charging.wireless || product.specifications.charging.wired) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Charging Methods</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications.charging.wireless && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Wireless Charging</span>
+              </div>
+            )}
+            {product.specifications.charging.wired && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Wired Charging</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.waterResistance !== undefined && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Water Resistance</h4>
+          <div className="text-sm">
+            <div className="flex items-center space-x-2 text-gray-400">
+              <span className={product.specifications.waterResistance ? "text-green-400" : "text-red-400"}>
+                {product.specifications.waterResistance ? "✓" : "✗"}
+              </span>
+              <span>{product.specifications.waterResistance ? "Yes" : "No"}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* Tablet Specifications */}
+  {product.category === 'tablets' && (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {(product.specifications?.memory?.ram || product.specifications?.memory?.storage) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Memory & Storage</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications?.memory?.ram && (
+              <div className="flex justify-between text-gray-400">
+                <span>RAM:</span>
+                <span className="text-white font-medium">{product.specifications.memory.ram}</span>
+              </div>
+            )}
+            {product.specifications?.memory?.storage && (
+              <div className="flex justify-between text-gray-400">
+                <span>Storage:</span>
+                <span className="text-white font-medium">{product.specifications.memory.storage}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.battery?.capacity && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Battery</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white font-medium">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.security && Object.values(product.specifications.security).some(val => val) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Security Features</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications.security.faceRecognition && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Face Recognition</span>
+              </div>
+            )}
+            {product.specifications.security.fingerprint && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Fingerprint Scanner</span>
+              </div>
+            )}
+            {product.specifications.security.voiceRecognition && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Voice Recognition</span>
+              </div>
+            )}
+            {product.specifications.security.none && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-gray-500">-</span>
+                <span>None</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* Laptop Specifications */}
+  {product.category === 'laptop' && (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {product.specifications?.processor?.core && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Processor</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Core:</span>
+              <span className="text-white font-medium">{product.specifications.processor.core}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(product.specifications?.memory?.ram || product.specifications?.memory?.storage) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Memory & Storage</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications?.memory?.ram && (
+              <div className="flex justify-between text-gray-400">
+                <span>RAM:</span>
+                <span className="text-white font-medium">{product.specifications.memory.ram}</span>
+              </div>
+            )}
+            {product.specifications?.memory?.storage && (
+              <div className="flex justify-between text-gray-400">
+                <span>Storage:</span>
+                <span className="text-white font-medium">{product.specifications.memory.storage}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.battery?.capacity && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Battery</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Capacity:</span>
+              <span className="text-white font-medium">{product.specifications.battery.capacity}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {product.specifications?.features && Object.values(product.specifications.features).some(val => val) && (
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-300 mb-3">Features</h4>
+          <div className="space-y-2 text-sm">
+            {product.specifications.features.touchScreen && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Touch Screen</span>
+              </div>
+            )}
+            {product.specifications.features.keyboardBacklight && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Keyboard Backlight</span>
+              </div>
+            )}
+            {product.specifications.features.waterResistance && (
+              <div className="flex items-center space-x-2 text-gray-400">
+                <span className="text-green-400">✓</span>
+                <span>Water Resistance</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )}
+</div>
         
        {/* Related Items Section */}
 {relatedProducts.length > 0 && (

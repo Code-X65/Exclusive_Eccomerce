@@ -99,33 +99,31 @@ const fetchSuggestions = async (searchTerm) => {
   setIsLoadingSuggestions(true);
   try {
     const productsRef = collection(db, 'products');
-    const q = query(
-      productsRef,
-      where('name', '>=', searchTerm),
-      where('name', '<=', searchTerm + '\uf8ff'),
-      limit(5)
-    );
-    
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(productsRef);
     const suggestions = [];
+    const searchTermLower = searchTerm.toLowerCase();
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      suggestions.push({
-        id: doc.id,
-        name: data.name,
-        category: data.category,
-        price: data.price
-      });
+      const productName = (data.name || data.title || '').toLowerCase();
+      
+      if (productName.includes(searchTermLower)) {
+        suggestions.push({
+          id: doc.id,
+          name: data.name || data.title,
+          category: data.category,
+          price: data.price
+        });
+      }
     });
     
-    setSuggestions(suggestions);
+    setSuggestions(suggestions.slice(0, 5));
   } catch (error) {
     console.error('Error fetching suggestions:', error);
     setSuggestions([]);
   }
   setIsLoadingSuggestions(false);
-};
+};  
 // Handle search input change
 const handleSearchChange = (e) => {
   const value = e.target.value;
@@ -192,6 +190,7 @@ const handleSuggestionClick = (suggestion) => {
     // It's a product suggestion - navigate to product page
     setSearchQuery('');
     setShowSearchDropdown(false);
+    setIsMenuOpen(false); // Close mobile menu
     navigate(`/product/${suggestion.id}`);
   }
 };

@@ -60,27 +60,27 @@ const Hero = () => {
       imagePlaceholder: 'https://i.ebayimg.com/images/g/a0UAAeSwxGVo0WOw/s-l1600.webp'
     },
     {
-      id: 4,
-      brand: "Nike",
-      productLine: "Summer Collection",
-      title: "20% off selected items",
-      ctaText: "Get Yours",
-      bgColor: "bg-orange-600",
-      textColor: "text-white",
-      logoPlaceholder: Nike,
-      imagePlaceholder: 'https://i.ebayimg.com/images/g/B-4AAOSw0i5neGiV/s-l1600.webp'   
+  id: 4,
+  brand: "Apple",
+  productLine: "Watch Series",
+  title: "20% off selected smartwatches",
+  ctaText: "Shop Now",
+  bgColor: "bg-gray-900",
+  textColor: "text-white",
+  logoPlaceholder: Apple, // Replace with Apple logo if you have it
+  imagePlaceholder: 'https://www.apple.com/v/watch/bt/images/overview/select/product_se__cbhd710p3auq_large.png'   
     },
     {
-      id: 5,
-      brand: "Dyson",
-      productLine: "Smart Home",
-      title: "Free delivery on all items",
-      ctaText: "Shop Collection",
-      bgColor: "bg-gray-800",
-      textColor: "text-white",
-      logoPlaceholder: "/api/placeholder/24/24",
-      imagePlaceholder: "https://i.ebayimg.com/images/g/L6sAAOSwq6Vneasb/s-l960.webp"
-    }
+  id: 5,
+  brand: "Samsung",
+  productLine: "Home Appliances",
+  title: "Free delivery on all items",
+  ctaText: "Shop Collection",
+  bgColor: "bg-slate-800",
+  textColor: "text-white",
+  logoPlaceholder: "/api/placeholder/24/24",
+  imagePlaceholder: "https://images.samsung.com/is/image/samsung/p6pim/levant/feature/164683561/levant-feature-bespoke-4-door-flex-refrigerator-with-family-hub-539146972"
+}
   ];
 
  const categories = [
@@ -107,8 +107,8 @@ const Hero = () => {
     ]
   },
   { name: "Tablets", hasSubmenu: false, link: "/categories/tablets" },
-  { name: "Smartwatches", hasSubmenu: false, link: "/categories/smartwatches" },
-  { name: "Wireless Earbuds", hasSubmenu: false, link: "/categories/earbuds" },
+  { name: "Smartwatch", hasSubmenu: false, link: "/categories/smartwatches" },
+  { name: "Earbuds", hasSubmenu: false, link: "/categories/earbuds" },
   { name: "Phone Repairs", hasSubmenu: false, link: "/categories/repairs" },
   { name: "Refurbished Phones", hasSubmenu: false, link: "/categories/refurbished" },
   { name: "Phone Plans", hasSubmenu: false, link: "/categories/plans" },

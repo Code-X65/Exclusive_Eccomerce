@@ -1,0 +1,89 @@
+{
+  "SmartPhones": {
+    "iPhone": [
+      "iPhone 17 series",
+      "iPhone 16 series",
+      "iphone 15 series",
+      "iPhone 14 series",
+      "iPhone 13 series",
+      "iphone 12 series",
+      "iphone 11 series"
+    ],
+    "Andriod": [
+      "samsung",
+      "Tecno",
+      "Itel",
+      "Infinix",
+      "Redmi",
+      "oppo"
+    ]
+  },
+  "Swartwatches": [
+    "iwatch",
+    "Andriod"
+  ],
+  "Tablets": [
+    "ipad",
+    "android"
+  ],
+  "Games": [
+    "Play Station",
+    "Xbox",
+    "Nintendo Switch",
+    "Gaming Headsets"
+  ],
+  "Sounds": [
+    "Boombox",
+    "Earbuds",
+    "Headphones",
+    "Portable Speakers",
+    "Bluetooth Speakers",
+    "Microphones"
+  ],
+  "Laptop": [
+    "Mac Book",
+    "Window"
+  ],
+  "Home Appliances": [
+    "Kitchen Appliances",
+    "Home Appliances",
+    "Power Appliances",
+    "Entertainment Appliances"
+  ]
+}
+
+// SmartPhones
+* Storage (RAm and Rom)
+* Battery Capacity 
+* Securlty ({
+  Face Recoginattion,
+  FingerPrint,
+  voice Note
+})
+//SmartWatches
+Charging methods{
+  wireless,
+  Wired
+},
+Battery Capacity,
+water resitance {
+  yes or no
+}
+//Tablets
+* Storage (RAm and Rom)
+* Battery Capacity 
+* Securlty ({
+  Face Recoginattion,
+  FingerPrint,
+  voice Note, 
+  none
+})
+
+//Laptop (windows)
+* Storage (RAm and Rom)
+* Rom (HDD or SDD)
+* Battery Capacity 
+* Core
+* Touch Screen 
+* Keyboard backlight
+* Water resitance

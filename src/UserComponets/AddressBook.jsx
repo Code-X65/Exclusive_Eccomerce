@@ -17,19 +17,30 @@ const AddressBook = () => {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    country: 'US',
-    type: 'shipping',
-    isDefault: false
-  });
+const [formData, setFormData] = useState({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  state: '',
+  zip: '',
+  country: 'Nigeria',
+  type: 'shipping',
+  isDefault: false
+});
 
   const userId = currentUser?.uid;
+
+  // Nigerian states for dropdown
+const nigerianStates = [
+  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
+  'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe', 'Imo',
+  'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa',
+  'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba',
+  'Yobe', 'Zamfara'
+];
 
   const generateAddressId = () => {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -253,25 +264,27 @@ const AddressBook = () => {
     }));
   };
 
-  const handleEdit = (addressId) => {
-    const addressToEdit = savedAddresses.find(addr => addr.id === addressId);
-    if (addressToEdit) {
-      setFormData({
-        firstName: addressToEdit.firstName || '',
-        lastName: addressToEdit.lastName || '',
-        address: addressToEdit.address || '',
-        city: addressToEdit.city || '',
-        state: addressToEdit.state || '',
-        zip: addressToEdit.zip || '',
-        country: addressToEdit.country || 'US',
-        type: addressToEdit.type || 'shipping',
-        isDefault: addressToEdit.isDefault || false
-      });
-      setEditingAddressId(addressId);
-      setShowAddressForm(true);
-      setError(null);
-    }
-  };
+const handleEdit = (addressId) => {
+  const addressToEdit = savedAddresses.find(addr => addr.id === addressId);
+  if (addressToEdit) {
+    setFormData({
+      firstName: addressToEdit.firstName || '',
+      lastName: addressToEdit.lastName || '',
+      email: addressToEdit.email || currentUser?.email || '',
+      phone: addressToEdit.phone || '',
+      address: addressToEdit.address || '',
+      city: addressToEdit.city || '',
+      state: addressToEdit.state || '',
+      zip: addressToEdit.zip || '',
+      country: addressToEdit.country === 'US' ? 'Nigeria' : addressToEdit.country || 'Nigeria',
+      type: addressToEdit.type || 'shipping',
+      isDefault: addressToEdit.isDefault || false
+    });
+    setEditingAddressId(addressId);
+    setShowAddressForm(true);
+    setError(null);
+  }
+};
 
   const handleDelete = async (addressId) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
@@ -291,22 +304,24 @@ const AddressBook = () => {
     }
   };
 
-  const handleAddNewAddress = () => {
-    setFormData({
-      firstName: '',
-      lastName: '',
-      address: '',
-      city: '',
-      state: '',
-      zip: '',
-      country: 'US',
-      type: 'shipping',
-      isDefault: false
-    });
-    setEditingAddressId(null);
-    setShowAddressForm(true);
-    setError(null);
-  };
+const handleAddNewAddress = () => {
+  setFormData({
+    firstName: '',
+    lastName: '',
+    email: currentUser?.email || '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: 'Nigeria',
+    type: 'shipping',
+    isDefault: false
+  });
+  setEditingAddressId(null);
+  setShowAddressForm(true);
+  setError(null);
+};
 
   const handleSaveAddress = async (e) => {
     e.preventDefault();
@@ -327,22 +342,24 @@ const AddressBook = () => {
     }
   };
 
-  const handleCancel = () => {
-    setShowAddressForm(false);
-    setEditingAddressId(null);
-    setFormData({
-      firstName: '',
-      lastName: '',
-      address: '',
-      city: '',
-      state: '',
-      zip: '',
-      country: 'US',
-      type: 'shipping',
-      isDefault: false
-    });
-    setError(null);
-  };
+const handleCancel = () => {
+  setShowAddressForm(false);
+  setEditingAddressId(null);
+  setFormData({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: 'Nigeria',
+    type: 'shipping',
+    isDefault: false
+  });
+  setError(null);
+};
 
   if (!currentUser) {
     return (
@@ -394,40 +411,73 @@ const AddressBook = () => {
           <h3 className="text-lg font-semibold mb-4">
             {editingAddressId ? 'Edit Address' : 'Add New Address'}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">First Name</label>
-              <input 
-                type="text" 
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 text-sm font-medium mb-1">Last Name</label>
-              <input 
-                type="text" 
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                required
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-gray-700 text-sm font-medium mb-1">Street Address</label>
-              <input 
-                type="text" 
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                required
-              />
-            </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+  <div>
+    <label className="block text-gray-700 text-sm font-medium mb-2">First Name *</label>
+    <input 
+      type="text" 
+      name="firstName"
+      value={formData.firstName}
+      onChange={handleInputChange}
+      className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      placeholder="Enter your first name"
+      required
+    />
+  </div>
+  <div>
+    <label className="block text-gray-700 text-sm font-medium mb-2">Last Name *</label>
+    <input 
+      type="text" 
+      name="lastName"
+      value={formData.lastName}
+      onChange={handleInputChange}
+      className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      placeholder="Enter your last name"
+      required
+    />
+  </div>
+  
+  {/* EMAIL FIELD - NEW */}
+  <div>
+    <label className="block text-gray-700 text-sm font-medium mb-2">Email Address *</label>
+    <input 
+      type="email" 
+      name="email"
+      value={formData.email}
+      onChange={handleInputChange}
+      className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      placeholder="Enter your email"
+      required
+    />
+  </div>
+  
+  {/* PHONE FIELD - NEW */}
+  <div>
+    <label className="block text-gray-700 text-sm font-medium mb-2">Phone Number *</label>
+    <input 
+      type="tel" 
+      name="phone"
+      value={formData.phone}
+      onChange={handleInputChange}
+      className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      placeholder="080xxxxxxxx"
+      required
+    />
+  </div>
+  
+  <div className="md:col-span-2">
+    <label className="block text-gray-700 text-sm font-medium mb-2">Street Address *</label>
+    <input 
+      type="text" 
+      name="address"
+      value={formData.address}
+      onChange={handleInputChange}
+      className="w-full px-3 py-2.5 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+      placeholder="Enter your full address"
+      required
+    />
+  </div>
+
             <div>
               <label className="block text-gray-700 text-sm font-medium mb-1">City</label>
               <input 
@@ -549,28 +599,38 @@ const AddressBook = () => {
               {savedAddresses.map(address => (
                 <div key={address.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="p-5">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center mb-2">
-                          <span className="font-semibold text-gray-800 text-lg">
-                            {address.firstName} {address.lastName}
-                          </span>
-                          {address.isDefault && (
-                            <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium inline-flex items-center">
-                              <Check className="h-3 w-3 mr-1" />
-                              Default
-                            </span>
-                          )}
-                          <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
-                            {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
-                          </span>
-                        </div>
-                        <p className="text-gray-600">{address.address}</p>
-                        <p className="text-gray-600">
-                          {address.city}, {address.state} {address.zip}
-                        </p>
-                        <p className="text-gray-600">{address.country}</p>
-                      </div>
+                <div className="flex justify-between items-start">
+  <div>
+    <div className="flex items-center mb-2">
+      <span className="font-semibold text-gray-800 text-lg">
+        {address.firstName} {address.lastName}
+      </span>
+      {address.isDefault && (
+        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium inline-flex items-center">
+          <Check className="h-3 w-3 mr-1" />
+          Default
+        </span>
+      )}
+      <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
+        {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
+      </span>
+    </div>
+    {address.email && (
+      <p className="text-gray-600 text-sm">
+        <span className="font-medium">Email:</span> {address.email}
+      </p>
+    )}
+    {address.phone && (
+      <p className="text-gray-600 text-sm mb-1">
+        <span className="font-medium">Phone:</span> {address.phone}
+      </p>
+    )}
+    <p className="text-gray-600">{address.address}</p>
+    <p className="text-gray-600">
+      {address.city}, {address.state} {address.zip}
+    </p>
+    <p className="text-gray-600">{address.country}</p>
+  </div>
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => handleEdit(address.id)}

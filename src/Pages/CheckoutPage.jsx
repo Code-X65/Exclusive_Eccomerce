@@ -5,7 +5,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 // Import your Firebase config - adjust path as needed
 import { db, auth } from '../Components/firebase';
-
 // Email service function to send order confirmation
 const sendOrderConfirmationEmail = async (orderData) => {
   try {
@@ -140,77 +139,108 @@ const CheckoutPage = () => {
   ];
 
   // HOOKS MUST BE AT THE TOP - BEFORE ANY RETURNS
-  // Listen for auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
+// Listen for auth state changes
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    setUser(firebaseUser);
+    if (firebaseUser) {
+      // Fetch user profile data to get email and phone
+      try {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setShippingInfo(prev => ({
+            ...prev,
+            email: userData.email || firebaseUser.email || '',
+            phone: userData.phone || ''
+          }));
+        } else {
+          setShippingInfo(prev => ({
+            ...prev,
+            email: firebaseUser.email || ''
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
         setShippingInfo(prev => ({
           ...prev,
           email: firebaseUser.email || ''
         }));
       }
-      if (!firebaseUser) {
-        setCartItems([]);
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+    }
+    if (!firebaseUser) {
+      setCartItems([]);
+      setLoading(false);
+    }
+  });
+  return () => unsubscribe();
+}, []);
 
-  // Fetch cart items and saved addresses when user changes
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user) {
-        setCartItems([]);
-        setSavedAddresses([]);
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setCartItems(userData.cart || []);
-          
-          // Get saved addresses
-          const addresses = userData.addresses || [];
-          setSavedAddresses(addresses);
-          
-          // Auto-select default address if available
-          const defaultAddress = addresses.find(addr => addr.isDefault);
-          if (defaultAddress) {
-            setSelectedAddressId(defaultAddress.id);
-            setShippingInfo({
-              firstName: defaultAddress.firstName || '',
-              lastName: defaultAddress.lastName || '',
-              email: user.email || '',
-              phone: '',
-              address: defaultAddress.address || '',
-              city: defaultAddress.city || '',
-              state: defaultAddress.state || '',
-              zipCode: defaultAddress.zip || '',
-              country: defaultAddress.country === 'US' ? 'Nigeria' : defaultAddress.country || 'Nigeria'
-            });
-          }
+ // Fetch cart items and saved addresses when user changes
+useEffect(() => {
+  const fetchUserData = async () => {
+    if (!user) {
+      setCartItems([]);
+      setSavedAddresses([]);
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setCartItems(userData.cart || []);
+        
+        // Get saved addresses
+        const addresses = userData.addresses || [];
+        setSavedAddresses(addresses);
+        
+        // Get user email and phone from profile
+        const userEmail = userData.email || user.email || '';
+        const userPhone = userData.phone || '';
+        
+        // Auto-select default address if available
+        const defaultAddress = addresses.find(addr => addr.isDefault);
+        if (defaultAddress) {
+          setSelectedAddressId(defaultAddress.id);
+          setShippingInfo({
+            firstName: defaultAddress.firstName || '',
+            lastName: defaultAddress.lastName || '',
+            email: defaultAddress.email || userEmail,
+            phone: defaultAddress.phone || userPhone,
+            address: defaultAddress.address || '',
+            city: defaultAddress.city || '',
+            state: defaultAddress.state || '',
+            zipCode: defaultAddress.zip || '',
+            country: defaultAddress.country === 'US' ? 'Nigeria' : defaultAddress.country || 'Nigeria'
+          });
         } else {
-          setCartItems([]);
-          setSavedAddresses([]);
+          // If no default address, just set email and phone
+          setShippingInfo(prev => ({
+            ...prev,
+            email: userEmail,
+            phone: userPhone
+          }));
         }
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError('Failed to load data. Please try again.');
+      } else {
         setCartItems([]);
         setSavedAddresses([]);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchUserData();
-  }, [user]);
+    } catch (err) {
+      console.error('Error fetching user data:', err);
+      setError('Failed to load data. Please try again.');
+      setCartItems([]);
+      setSavedAddresses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchUserData();
+}, [user]);
   useEffect(() => {
   loadEmailJS().catch(error => console.warn('Failed to load EmailJS:', error));
 }, []);
@@ -229,41 +259,42 @@ const total = subtotal + shipping;
     }));
   };
 
-  // Handle address selection
-  const handleAddressSelection = (addressId) => {
-    if (addressId === 'new') {
-      setUseNewAddress(true);
-      setSelectedAddressId('');
-      setShippingInfo({
-        firstName: '',
-        lastName: '',
-        email: user?.email || '',
-        phone: '',
-        address: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: 'Nigeria'
-      });
-    } else {
-      setUseNewAddress(false);
-      setSelectedAddressId(addressId);
-      const selectedAddress = savedAddresses.find(addr => addr.id === addressId);
-      if (selectedAddress) {
-        setShippingInfo({
-          firstName: selectedAddress.firstName || '',
-          lastName: selectedAddress.lastName || '',
-          email: user?.email || '',
-          phone: '',
-          address: selectedAddress.address || '',
-          city: selectedAddress.city || '',
-          state: selectedAddress.state || '',
-          zipCode: selectedAddress.zip || '',
-          country: selectedAddress.country === 'US' ? 'Nigeria' : selectedAddress.country || 'Nigeria'
-        });
-      }
+// Handle address selection
+const handleAddressSelection = (addressId) => {
+  if (addressId === 'new') {
+    setUseNewAddress(true);
+    setSelectedAddressId('');
+    // Preserve user's profile email and phone when adding new address
+    setShippingInfo(prev => ({
+      firstName: '',
+      lastName: '',
+      email: prev.email, // Keep the email from profile
+      phone: prev.phone, // Keep the phone from profile
+      address: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'Nigeria'
+    }));
+  } else {
+    setUseNewAddress(false);
+    setSelectedAddressId(addressId);
+    const selectedAddress = savedAddresses.find(addr => addr.id === addressId);
+    if (selectedAddress) {
+      setShippingInfo(prev => ({
+        firstName: selectedAddress.firstName || '',
+        lastName: selectedAddress.lastName || '',
+        email: selectedAddress.email || prev.email, // Use address email or fallback to profile email
+        phone: selectedAddress.phone || prev.phone, // Use address phone or fallback to profile phone
+        address: selectedAddress.address || '',
+        city: selectedAddress.city || '',
+        state: selectedAddress.state || '',
+        zipCode: selectedAddress.zip || '',
+        country: selectedAddress.country === 'US' ? 'Nigeria' : selectedAddress.country || 'Nigeria'
+      }));
     }
-  };
+  }
+};
 
   // Validate shipping form
   const validateShippingForm = () => {

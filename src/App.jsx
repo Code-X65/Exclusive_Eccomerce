@@ -105,7 +105,7 @@ const App = () => {
       </div>
     )}
     
-    <Router basename="/Exclusive_Eccomerce">
+    <Router basename="/Exclusive_Eccomerce/">
       <AuthProvider setIsLoading={setIsLoading}>
         <NavigationProgressBar />
         <ScrollToTop />

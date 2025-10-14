@@ -18,11 +18,11 @@ const Category = () => {
   
   // Category data
   const BrowserCategory = [
-    { icon: <Phone />, title: "Phone" },
-    { icon: <Computer />, title: "Computer" },
-    { icon: <Camera />, title: "Camera" },
-    { icon: <Watch />, title: "Smartwatch" },
-    { icon: <Headphones />, title: "HeadPhones" },
+    { icon: <Phone />, title: "SmartPhone" },
+    { icon: <Computer />, title: "Smartwatches" },
+    { icon: <Camera />, title: "Tablets" },
+    { icon: <Watch />, title: "Games" },
+    { icon: <Headphones />, title: "" },
     { icon: <Gamepad />, title: "Gaming" },
     { icon: <Camera />, title: "Accessories" },
     { icon: <Computer />, title: "Tablets" }

@@ -13,6 +13,8 @@ export default function BestSelling() {
   const [cartItems, setCartItems] = useState([]);
   const [displayMonth, setDisplayMonth] = useState('');
   const navigate = useNavigate();
+  const [userCartItems, setUserCartItems] = useState([]);
+const [userWishlistItems, setUserWishlistItems] = useState([]);
 
   // Generate product URL for sharing
   const generateProductUrl = (productId) => {
@@ -72,49 +74,81 @@ export default function BestSelling() {
   };
 
   // Add to cart function
-  const addToCart = async (product) => {
+const addToCart = async (product) => {
+  if (!user) {
+    alert('Please log in to add items to cart');
+    return;
+  }
+
+  try {
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const currentCart = userData.cart || [];
+      
+      // Find existing item
+      const existingItemIndex = currentCart.findIndex(item => item.productId === product.id);
+      
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        currentCart[existingItemIndex].quantity += 1;
+        await updateDoc(userDocRef, { cart: currentCart });
+        setUserCartItems(currentCart);
+        alert('Cart updated successfully!');
+      } else {
+        // Add new item
+        const cartItem = {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image || '📱',
+          quantity: 1,
+          selectedSize: 'M',
+          selectedColor: 'white',
+          addedAt: new Date().toISOString()
+        };
+        
+        await setDoc(userDocRef, {
+          cart: arrayUnion(cartItem)
+        }, { merge: true });
+        
+        setUserCartItems([...currentCart, cartItem]);
+        alert('Product added to cart successfully!');
+      }
+    }
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Failed to add product to cart. Please try again.');
+  }
+};
+
+
+  useEffect(() => {
+  const fetchUserData = async () => {
     if (!user) {
-      alert('Please log in to add items to cart');
+      setUserCartItems([]);
+      setUserWishlistItems([]);
       return;
     }
 
     try {
-      const cartItem = {
-        productId: product.id,
-        name: product.name,
-        price: product.salePrice,
-        image: product.image || '/api/placeholder/400/400',
-        quantity: 1,
-        selectedSize: 'M',
-        selectedColor: 'white',
-        addedAt: new Date().toISOString()
-      };
-
       const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
       
-      await setDoc(userDocRef, {
-        cart: arrayUnion(cartItem)
-      }, { merge: true });
-
-      setCartItems(prev => {
-        const existing = prev.find(item => item.id === product.id);
-        if (existing) {
-          return prev.map(item => 
-            item.id === product.id 
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        }
-        return [...prev, { ...product, quantity: 1 }];
-      });
-
-      alert('Product added to cart successfully!');
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserCartItems(userData.cart || []);
+        setUserWishlistItems(userData.wishlist || []);
+      }
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('Failed to add product to cart. Please try again.');
+      console.error('Error fetching user data:', error);
     }
   };
 
+  fetchUserData();
+}, [user]);
   // Fetch products by month
   useEffect(() => {
     const fetchProductsByMonth = async () => {
@@ -230,33 +264,30 @@ export default function BestSelling() {
 
   // Product Card Component
   const ProductCard = ({ product }) => {
-    const [isHovered, setIsHovered] = useState(false);
-    const [addingToCart, setAddingToCart] = useState(false);
-    const [addingToWishlist, setAddingToWishlist] = useState(false);
-    const [isInWishlist, setIsInWishlist] = useState(false);
-    const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
+  const [cartItemQuantity, setCartItemQuantity] = useState(0);
 
-    // Check if product is in wishlist
-    useEffect(() => {
-      const checkWishlistStatus = async () => {
-        if (!user || !product) return;
+   // Check cart and wishlist status
+  useEffect(() => {
+    const cartItem = userCartItems.find(item => item.productId === product.id);
+    if (cartItem) {
+      setIsInCart(true);
+      setCartItemQuantity(cartItem.quantity);
+    } else {
+      setIsInCart(false);
+      setCartItemQuantity(0);
+    }
 
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const wishlist = userData.wishlist || [];
-            setIsInWishlist(wishlist.some(item => item.productId === product.id));
-          }
-        } catch (error) {
-          console.error('Error checking wishlist status:', error);
-        }
-      };
+    const wishlistItem = userWishlistItems.find(item => item.productId === product.id);
+    setIsInWishlist(!!wishlistItem);
+  }, [userCartItems, userWishlistItems, product.id]);
 
-      checkWishlistStatus();
-    }, [user, product]);
+
 
     // Close share menu when clicking outside
     useEffect(() => {
@@ -484,27 +515,29 @@ export default function BestSelling() {
         
         <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
-            onClick={handleAddToCart}
-            disabled={addingToCart || product.stock === 0}
-            className={`w-full text-sm py-2 rounded transition-colors ${
-              product.stock === 0
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : addingToCart 
-                  ? 'bg-gray-400 text-white cursor-not-allowed' 
-                  : 'bg-black text-white hover:bg-gray-800'
-            }`}
-          >
-            {product.stock === 0 ? (
-              'Out of Stock'
-            ) : addingToCart ? (
-              <div className="flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Adding...
-              </div>
-            ) : (
-              'Add To Cart'
-            )}
-          </button>
+  onClick={handleAddToCart}
+  disabled={addingToCart || product.stock === 0}
+  className={`w-full py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+    product.stock === 0
+      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+      : addingToCart 
+        ? 'bg-gray-600 text-white cursor-not-allowed' 
+        : isInCart
+          ? 'bg-green-600 text-white hover:bg-green-700'
+          : 'bg-red-500 text-white hover:bg-red-600'
+  }`}
+>
+  {product.stock === 0 ? (
+    'Out of Stock'
+  ) : addingToCart ? (
+    <div className="flex items-center justify-center gap-2">
+      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      {isInCart ? 'Updating...' : 'Adding...'}
+    </div>
+  ) : (
+    <span>{isInCart ? `In Cart (${cartItemQuantity})` : 'Add To Cart'}</span>
+  )}
+</button>
         </div>
       </div>
     );
@@ -519,7 +552,7 @@ export default function BestSelling() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-xl md:text-4xl font-bold">Best Selling Products</h1>
+          <h1 className="text-xl text-gray-50 md:text-4xl font-bold">Best Selling Products</h1>
           {displayMonth && (
             <p className="text-sm text-gray-500 mt-1">{displayMonth}</p>
           )}

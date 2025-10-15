@@ -83,36 +83,71 @@ const Hero = () => {
 }
   ];
 
- const categories = [
+// Replace the entire categories array (around line 97-137) with:
+const categories = [
   { 
-    name: "Smartphones", 
+    name: "SmartPhone", 
     hasSubmenu: true,
     link: "/categories/smartphones",
     subcategories: [
-      { name: "Android Phones", items: ["Samsung Galaxy", "Google Pixel", "OnePlus", "Xiaomi"] },
-      { name: "iPhones", items: ["iPhone 15 Pro", "iPhone 15", "iPhone 14", "iPhone SE"] },
-      { name: "Budget Phones", items: ["Under $200", "Under $400", "Mid-range", "Refurbished"] },
-      { name: "Gaming Phones", items: ["ROG Phone", "RedMagic", "Black Shark", "Razer Phone"] }
+      { name: "iPhone Series", items: ["iPhone 17 series", "iPhone 16 series", "iPhone 15 series", "iPhone 14 series"] },
+      { name: "iPhone Legacy", items: ["iPhone 13 series", "iPhone 12 series", "iPhone 11 series"] },
+      { name: "Android Brands", items: ["Samsung", "Tecno", "Itel", "Infinix"] },
+      { name: "Budget Friendly", items: ["Redmi", "Oppo"] }
     ]
   },
   { 
-    name: "Phone Accessories", 
+    name: "Smartwatche", 
     hasSubmenu: true, 
-    link: "/categories/accessories",
+    link: "/categories/smartwatches",
     subcategories: [
-      { name: "Cases & Covers", items: ["Protective Cases", "Designer Cases", "Leather Cases", "Clear Cases"] },
-      { name: "Screen Protection", items: ["Tempered Glass", "Privacy Screens", "Blue Light Filters", "Anti-Glare"] },
-      { name: "Chargers", items: ["Wireless Chargers", "Fast Chargers", "Car Chargers", "Power Banks"] },
-      { name: "Audio", items: ["Headphones", "Earbuds", "Bluetooth Speakers", "Phone Stands"] }
+      { name: "Apple", items: ["iWatch"] },
+      { name: "Android", items: ["Android"] }
     ]
   },
-  { name: "Tablets", hasSubmenu: false, link: "/categories/tablets" },
-  { name: "Smartwatch", hasSubmenu: false, link: "/categories/smartwatches" },
-  { name: "Earbuds", hasSubmenu: false, link: "/categories/earbuds" },
-  { name: "Phone Repairs", hasSubmenu: false, link: "/categories/repairs" },
-  { name: "Refurbished Phones", hasSubmenu: false, link: "/categories/refurbished" },
-  { name: "Phone Plans", hasSubmenu: false, link: "/categories/plans" },
-  { name: "Trade-In Program", hasSubmenu: false, link: "/categories/trade-in" },
+  { 
+    name: "Tablet", 
+    hasSubmenu: true, 
+    link: "/categories/tablets",
+    subcategories: [
+      { name: "Apple", items: ["iPad"] },
+      { name: "Android", items: ["Android"] }
+    ]
+  },
+  { 
+    name: "Game", 
+    hasSubmenu: true, 
+    link: "/categories/games",
+    subcategories: [
+      { name: "Consoles", items: ["Play Station", "Xbox", "Nintendo Switch"] },
+      { name: "Accessories", items: ["Game Disc", "Gaming Headsets"] }
+    ]
+  },
+  { 
+    name: "Sound", 
+    hasSubmenu: true, 
+    link: "/categories/sounds",
+    subcategories: [
+      { name: "Personal Audio", items: ["Earbuds", "Headphones", "Microphones"] },
+      { name: "Speakers", items: ["Boombox", "Portable Speakers", "Bluetooth Speakers"] }
+    ]
+  },
+  { 
+    name: "Laptop", 
+    hasSubmenu: true, 
+    link: "/categories/laptop",
+    subcategories: [
+      { name: "Operating System", items: ["Mac Book", "Windows"] }
+    ]
+  },
+  { 
+    name: "Home Appliance", 
+    hasSubmenu: true, 
+    link: "/categories/home_appliances",
+    subcategories: [
+      { name: "Categories", items: ["Kitchen Appliances", "Home Appliances", "Power Appliances", "Entertainment Appliances"] }
+    ]
+  }
 ];
 const handleCategoryClick = (categoryName, subcategoryName = null) => {
   const searchTerm = subcategoryName || categoryName;

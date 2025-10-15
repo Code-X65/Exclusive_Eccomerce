@@ -22,6 +22,7 @@ import OrdersPage from './Pages/OrdersPages'
 import { CartProvider } from './Components/CartContext';
 import SmartWatchPage from './Pages/SmartWatches'
 import BoomBoxPage from './Pages/BoomBoxPage'
+import CategoryPage from './Pages/CategoryPage'
 
 // Progress Bar Component
 const NavigationProgressBar = () => {
@@ -127,6 +128,7 @@ const App = () => {
             <Route path="products/:category" element={<ProductPage />} />
             <Route path="Smartwatches" element={<SmartWatchPage />} />
             <Route path="BoomBox" element={<BoomBoxPage />} />
+            <Route path="category" element={<CategoryPage />} />
             
             <Route path="product/:id" element={<ProductDetails />} />
 

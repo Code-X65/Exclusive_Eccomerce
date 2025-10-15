@@ -5,6 +5,7 @@ import { Heart, HeartMinus, LogOut, Search, ShoppingBag, ShoppingBasket, Star, U
 import { useCart } from '../Components/CartContext';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const Navbar = () => {
   const [isSticky, setIsSticky] = useState(false);
@@ -17,11 +18,11 @@ const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 const searchRef = useRef(null);
 const searchDropdownRef = useRef(null);
 const navigate = useNavigate();
+const [cartCount, setCartCount] = useState(0);
 
   const { currentUser, isLoggedIn, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { getCartCount } = useCart();
-const cartCount = getCartCount();
+
   const [profile, setProfile] = useState(false);
   const profileRef = useRef(null);
   
@@ -88,6 +89,39 @@ useEffect(() => {
     console.log('Storage not available, using in-memory history');
   }
 }, []);
+useEffect(() => {
+  const fetchCartCount = async () => {
+    if (!currentUser) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const cart = userData.cart || [];
+        // Calculate total quantity of all items
+        const totalCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        setCartCount(totalCount);
+      } else {
+        setCartCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching cart count:', error);
+      setCartCount(0);
+    }
+  };
+
+  fetchCartCount();
+  
+  // Optional: Set up an interval to refresh cart count periodically
+  const interval = setInterval(fetchCartCount, 5000); // Refresh every 5 seconds
+  
+  return () => clearInterval(interval);
+}, [currentUser]);
 
 // Fetch suggestions from database
 const fetchSuggestions = async (searchTerm) => {
@@ -236,7 +270,7 @@ const mobileMenuItemClass = "text-gray-200 hover:bg-gray-800 hover:text-red-500 
               <Link to="/products"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 Products
               </Link>
-              <Link to="/categories"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
+              <Link to="/category"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">
                 Categories
               </Link>
               <Link to="/contact"className="border-transparent text-gray-300 hover:border-red-500 hover:text-red-500 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium animation-1000 duration-600">

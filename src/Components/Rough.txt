@@ -60,6 +60,7 @@
   FingerPrint,
   voice Note
 })
+* water resistancy
 //SmartWatches
 Charging methods{
   wireless,
@@ -86,4 +87,4 @@ water resitance {
 * Core
 * Touch Screen 
 * Keyboard backlight
-* Water resitance
+* Water resitance 

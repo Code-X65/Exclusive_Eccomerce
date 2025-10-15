@@ -22,8 +22,11 @@ const productsPerPage = 16;
 const location = useLocation();
 const [searchQuery, setSearchQuery] = useState('');
 const [originalProducts, setOriginalProducts] = useState([]);
+const [userCartItems, setUserCartItems] = useState([]);
+const [userWishlistItems, setUserWishlistItems] = useState([]);
 const categories = [
   'All',
+  'Smartphone',
   'Gaming',
   'Electronics',
   'Furniture',
@@ -73,7 +76,9 @@ const filteredProducts = shuffledProducts.filter(product => {
   
   // Category filter
   const categoryMatch = selectedCategory === 'All' || 
-    (selectedCategory === 'Gaming' && (product.name?.includes('Gamepad') || product.name?.includes('Gaming') || product.category === 'gaming')) ||
+    (selectedCategory === 'Gaming' && (product.name?.includes('Gamepad') || product.name?.includes('Gaming') || product.category === 'gaming')) || 
+    (selectedCategory === 'Smartphone' && (product.name?.includes('Gamepad') || product.name?.includes('Smartphone') || product.category === 'smartphone'))
+     ||
     (selectedCategory === 'Electronics' && (product.name?.includes('Keyboard') || product.name?.includes('Monitor') || product.category === 'smartphone' || product.category === 'accessory')) ||
     (selectedCategory === 'Furniture' && product.name?.includes('Chair')) ||
     (selectedCategory === 'Accessories' && (product.name?.includes('Gamepad') || product.name?.includes('Keyboard') || product.category === 'accessory')) ||
@@ -174,38 +179,43 @@ const addToCart = async (product) => {
   }
 
   try {
-    const cartItem = {
-      productId: product.id,
-      name: product.name,
-      price: product.salePrice,
-      image: product.image || '/api/placeholder/400/400',
-      quantity: 1,
-      selectedSize: 'M',
-      selectedColor: 'white',
-      addedAt: new Date().toISOString()
-    };
-
     const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
     
-    // Use setDoc with merge to create document if it doesn't exist
-    await setDoc(userDocRef, {
-      cart: arrayUnion(cartItem)
-    }, { merge: true });
-
-    // Update local cart state for immediate UI feedback
-    setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const currentCart = userData.cart || [];
+      
+      // Find existing item
+      const existingItemIndex = currentCart.findIndex(item => item.productId === product.id);
+      
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        currentCart[existingItemIndex].quantity += 1;
+        await updateDoc(userDocRef, { cart: currentCart });
+        setUserCartItems(currentCart);
+        alert('Cart updated successfully!');
+      } else {
+        // Add new item
+        const cartItem = {
+          productId: product.id,
+          name: product.name,
+          price: product.salePrice,
+          image: product.image || '/api/placeholder/400/400',
+          quantity: 1,
+          selectedSize: 'M',
+          selectedColor: 'white',
+          addedAt: new Date().toISOString()
+        };
+        
+        await setDoc(userDocRef, {
+          cart: arrayUnion(cartItem)
+        }, { merge: true });
+        
+        setUserCartItems([...currentCart, cartItem]);
+        alert('Product added to cart successfully!');
       }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-
-    alert('Product added to cart successfully!');
+    }
   } catch (error) {
     console.error('Error adding to cart:', error);
     alert('Failed to add product to cart. Please try again.');
@@ -471,6 +481,30 @@ useEffect(() => {
   }
 }, [categoryParam]);
 
+useEffect(() => {
+  const fetchUserData = async () => {
+    if (!user) {
+      setUserCartItems([]);
+      setUserWishlistItems([]);
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserCartItems(userData.cart || []);
+        setUserWishlistItems(userData.wishlist || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  fetchUserData();
+}, [user]);
  
 
   // Calculate products to display based on screen size
@@ -567,12 +601,14 @@ useEffect(() => {
 
   // Product card component
 const ProductCard = ({ product }) => {
-  const navigate = useNavigate();
+const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [addingToWishlist, setAddingToWishlist] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
+  const [cartItemQuantity, setCartItemQuantity] = useState(0);
 
   // Check if product is in wishlist
   useEffect(() => {
@@ -596,6 +632,19 @@ const ProductCard = ({ product }) => {
     checkWishlistStatus();
   }, [user, product]);
 
+   useEffect(() => {
+    const cartItem = userCartItems.find(item => item.productId === product.id);
+    if (cartItem) {
+      setIsInCart(true);
+      setCartItemQuantity(cartItem.quantity);
+    } else {
+      setIsInCart(false);
+      setCartItemQuantity(0);
+    }
+
+    const wishlistItem = userWishlistItems.find(item => item.productId === product.id);
+    setIsInWishlist(!!wishlistItem);
+  }, [userCartItems, userWishlistItems, product.id]);
   // Close share menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -853,29 +902,31 @@ const ProductCard = ({ product }) => {
         </div>
         
         {/* Add to Cart Button */}
-        <button 
-          onClick={handleAddToCart}
-          disabled={addingToCart || product.stock === 0}
-          className={`w-full py-1.5 sm:py-2.5 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 ${
-            product.stock === 0
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : addingToCart 
-                ? 'bg-gray-400 text-white cursor-not-allowed' 
-                : 'bg-black text-white hover:bg-red-500 hover:shadow-md transform hover:-translate-y-0.5'
-          }`}
-        >
-          {product.stock === 0 ? (
-            'Out of Stock'
-          ) : addingToCart ? (
-            <div className="flex items-center justify-center gap-1 sm:gap-2">
-              <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span className="hidden sm:inline">Adding...</span>
-              <span className="sm:hidden">...</span>
-            </div>
-          ) : (
-            <span>Add To Cart</span>
-          )}
-        </button>
+       <button 
+  onClick={handleAddToCart}
+  disabled={addingToCart || product.stock === 0}
+  className={`w-full py-1.5 sm:py-2.5 px-2 sm:px-4 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 ${
+    product.stock === 0
+      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+      : addingToCart 
+        ? 'bg-gray-400 text-white cursor-not-allowed' 
+        : isInCart
+          ? 'bg-green-600 text-white hover:bg-green-700'
+          : 'bg-black text-white hover:bg-red-500 hover:shadow-md transform hover:-translate-y-0.5'
+  }`}
+>
+  {product.stock === 0 ? (
+    'Out of Stock'
+  ) : addingToCart ? (
+    <div className="flex items-center justify-center gap-1 sm:gap-2">
+      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      <span className="hidden sm:inline">{isInCart ? 'Updating...' : 'Adding...'}</span>
+      <span className="sm:hidden">...</span>
+    </div>
+  ) : (
+    <span>{isInCart ? `In Cart (${cartItemQuantity})` : 'Add To Cart'}</span>
+  )}
+</button>
       </div>
     </div>
   );

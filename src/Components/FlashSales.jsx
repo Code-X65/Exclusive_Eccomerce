@@ -7,6 +7,8 @@ import { db, auth } from './firebase';
 
 
 export default function FlashSales() {
+  const [userCartItems, setUserCartItems] = useState([]);
+const [userWishlistItems, setUserWishlistItems] = useState([]);
   // Countdown Timer State
   const [timeLeft, setTimeLeft] = useState({
     days: 3,
@@ -86,48 +88,55 @@ export default function FlashSales() {
     window.open(facebookUrl, '_blank');
   };
 
-  const addToCart = async (product) => {
-    if (!user) {
-      alert('Please log in to add items to cart');
-      return;
-    }
+const addToCart = async (product) => {
+  if (!user) {
+    alert('Please log in to add items to cart');
+    return;
+  }
 
-    try {
-      const cartItem = {
-        productId: product.id,
-        name: product.name,
-        price: product.salePrice,
-        image: product.image || '/api/placeholder/400/400',
-        quantity: 1,
-        selectedSize: 'M',
-        selectedColor: 'white',
-        addedAt: new Date().toISOString()
-      };
-
-      const userDocRef = doc(db, 'users', user.uid);
+  try {
+    const userDocRef = doc(db, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      const currentCart = userData.cart || [];
       
-      await setDoc(userDocRef, {
-        cart: arrayUnion(cartItem)
-      }, { merge: true });
-
-      setCartItems(prev => {
-        const existing = prev.find(item => item.id === product.id);
-        if (existing) {
-          return prev.map(item => 
-            item.id === product.id 
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        }
-        return [...prev, { ...product, quantity: 1 }];
-      });
-
-      alert('Product added to cart successfully!');
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('Failed to add product to cart. Please try again.');
+      // Find existing item
+      const existingItemIndex = currentCart.findIndex(item => item.productId === product.id);
+      
+      if (existingItemIndex !== -1) {
+        // Update quantity of existing item
+        currentCart[existingItemIndex].quantity += 1;
+        await updateDoc(userDocRef, { cart: currentCart });
+        setUserCartItems(currentCart);
+        alert('Cart updated successfully!');
+      } else {
+        // Add new item
+        const cartItem = {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image || '📱',
+          quantity: 1,
+          selectedSize: 'M',
+          selectedColor: 'white',
+          addedAt: new Date().toISOString()
+        };
+        
+        await setDoc(userDocRef, {
+          cart: arrayUnion(cartItem)
+        }, { merge: true });
+        
+        setUserCartItems([...currentCart, cartItem]);
+        alert('Product added to cart successfully!');
+      }
     }
-  };
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    alert('Failed to add product to cart. Please try again.');
+  }
+};
 
   const addToWishlist = async (product) => {
     if (!user) {
@@ -156,6 +165,33 @@ export default function FlashSales() {
       alert('Failed to add product to wishlist. Please try again.');
     }
   };
+
+
+
+useEffect(() => {
+  const fetchUserData = async () => {
+    if (!user) {
+      setUserCartItems([]);
+      setUserWishlistItems([]);
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserCartItems(userData.cart || []);
+        setUserWishlistItems(userData.wishlist || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  fetchUserData();
+}, [user]);
 
   // MODIFIED useEffect - Replace existing useEffect hooks with these
   useEffect(() => {
@@ -327,10 +363,26 @@ export default function FlashSales() {
   // UPDATED Product card component - Replace the existing ProductCard
   const ProductCard = ({ product }) => {
     const [isHovered, setIsHovered] = useState(false);
-    const [addingToCart, setAddingToCart] = useState(false);
-    const [addingToWishlist, setAddingToWishlist] = useState(false);
-    const [isInWishlist, setIsInWishlist] = useState(false);
-    const [showShareMenu, setShowShareMenu] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addingToWishlist, setAddingToWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
+  const [cartItemQuantity, setCartItemQuantity] = useState(0);
+// Check cart and wishlist status
+   useEffect(() => {
+    const cartItem = userCartItems.find(item => item.productId === product.id);
+    if (cartItem) {
+      setIsInCart(true);
+      setCartItemQuantity(cartItem.quantity);
+    } else {
+      setIsInCart(false);
+      setCartItemQuantity(0);
+    }
+
+    const wishlistItem = userWishlistItems.find(item => item.productId === product.id);
+    setIsInWishlist(!!wishlistItem);
+  }, [userCartItems, userWishlistItems, product.id]);
 
     // Check if product is in wishlist
     useEffect(() => {
@@ -599,28 +651,29 @@ export default function FlashSales() {
         
         <div className="mt-3">
           <button 
-            onClick={handleAddToCart}
-            disabled={addingToCart || product.stock === 0}
-            className={`w-full text-xs sm:text-sm py-2 rounded font-medium transition-all duration-300 ${
-              product.stock === 0
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : addingToCart 
-                  ? 'bg-gray-400 text-white cursor-not-allowed' 
-                  : 'bg-black text-white hover:bg-red-500 hover:shadow-md transform hover:-translate-y-0.5'
-            }`}
-          >
-            {product.stock === 0 ? (
-              'Out of Stock'
-            ) : addingToCart ? (
-              <div className="flex items-center justify-center gap-1">
-                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span className="hidden sm:inline">Adding...</span>
-                <span className="sm:hidden">...</span>
-              </div>
-            ) : (
-              'Add To Cart'
-            )}
-          </button>
+  onClick={handleAddToCart}
+  disabled={addingToCart || product.stock === 0}
+  className={`w-full py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+    product.stock === 0
+      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+      : addingToCart 
+        ? 'bg-gray-600 text-white cursor-not-allowed' 
+        : isInCart
+          ? 'bg-green-600 text-white hover:bg-green-700'
+          : 'bg-red-500 text-white hover:bg-red-600'
+  }`}
+>
+  {product.stock === 0 ? (
+    'Out of Stock'
+  ) : addingToCart ? (
+    <div className="flex items-center justify-center gap-2">
+      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      {isInCart ? 'Updating...' : 'Adding...'}
+    </div>
+  ) : (
+    <span>{isInCart ? `In Cart (${cartItemQuantity})` : 'Add To Cart'}</span>
+  )}
+</button>
         </div>
       </div>
     );

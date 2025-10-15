@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Eye, ChevronLeft, ChevronRight, Phone, Computer, Watch, Headphones, Gamepad, Camera } from 'lucide-react';
+import { Heart, Eye, ChevronLeft, ChevronRight, Phone, Computer, Watch, Headphones, Gamepad, Camera, WatchIcon, Tablet, Gamepad2, Speaker, Laptop, Home, Refrigerator } from 'lucide-react';
 
 const Category = () => {
   // References for the chevron buttons
@@ -19,13 +19,13 @@ const Category = () => {
   // Category data
   const BrowserCategory = [
     { icon: <Phone />, title: "SmartPhone" },
-    { icon: <Computer />, title: "Smartwatches" },
-    { icon: <Camera />, title: "Tablets" },
-    { icon: <Watch />, title: "Games" },
-    { icon: <Headphones />, title: "" },
-    { icon: <Gamepad />, title: "Gaming" },
-    { icon: <Camera />, title: "Accessories" },
-    { icon: <Computer />, title: "Tablets" }
+    { icon: <WatchIcon />, title: "Smartwatches" },
+    { icon: <Tablet />, title: "Tablets" },
+    { icon: <Gamepad2 />, title: "Games" },
+    { icon: <Speaker />, title: "Sounds" },
+    { icon: <Laptop />, title: "Laptops" },
+    { icon: <Refrigerator />, title: "Home Apliances" },
+    
   ];
 
   // Calculate how many categories to show per view based on screen size

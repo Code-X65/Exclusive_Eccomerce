@@ -19,7 +19,7 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
   // Generate product URL for sharing
   const generateProductUrl = (productId) => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/product/${productId}`;
+    return `${baseUrl}/Exclusive_Eccomerce/product/${productId}`;
   };
 
   // Share functions

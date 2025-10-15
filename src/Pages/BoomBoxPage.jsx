@@ -157,7 +157,7 @@ const BoomBoxPage = () => {
 
   const generateProductUrl = (productId) => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/product/${productId}`;
+    return `${baseUrl}/Exclusive_Eccomerce/product/${productId}`;
   };
 
   const shareProduct = async (product) => {

@@ -27,12 +27,12 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
 const categories = [
   'All',
   'Smartphone',
-  'Gaming',
-  'Electronics',
-  'Furniture',
-  'Accessories',
-  'Monitors',
-  'Keyboards'
+  'Smartwatch',
+  'Tablet',
+  'Game',
+  'Sounds ',
+  'Laptops',
+  'Home Appliances'
 ];
 
 const priceRanges = [

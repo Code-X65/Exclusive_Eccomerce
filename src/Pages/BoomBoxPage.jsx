@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Star, ShoppingCart, Heart, Eye, Share2, Copy, MessageCircle } from 'lucide-react';
 import BoomBox from '../assets/Images/boomBox.png'
-
+import { toast } from 'react-toastify';
 const BoomBoxPage = () => {
   const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -22,7 +22,7 @@ const BoomBoxPage = () => {
 
   const addToCart = async (product) => {
     if (!user) {
-      alert('Please log in to add items to cart');
+      toast.error('Please log in to add items to cart');
       return;
     }
 
@@ -41,16 +41,16 @@ const BoomBoxPage = () => {
         cart: arrayUnion(cartItem)
       }, { merge: true });
 
-      alert('Product added to cart successfully!');
+      toast.success('Product added to cart successfully!');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Failed to add product to cart. Please try again.');
+      toast.error('Failed to add product to cart. Please try again.');
     }
   };
 
   const addToWishlist = async (product) => {
     if (!user) {
-      alert('Please log in to add items to wishlist');
+      toast.error('Please log in to add items to wishlist');
       return;
     }
 
@@ -68,10 +68,10 @@ const BoomBoxPage = () => {
         wishlist: arrayUnion(wishlistItem)
       }, { merge: true });
 
-      alert('Product added to wishlist successfully!');
+      toast.success('Product added to wishlist successfully!');
     } catch (error) {
       console.error('Error adding to wishlist:', error);
-      alert('Failed to add product to wishlist. Please try again.');
+      toast.error('Failed to add product to wishlist. Please try again.');
     }
   };
 
@@ -175,17 +175,17 @@ const BoomBoxPage = () => {
         console.log('Error sharing:', error);
         try {
           await navigator.clipboard.writeText(url);
-          alert('Product link copied to clipboard!');
+          toast.success('Product link copied to clipboard!');
         } catch (copyError) {
-          alert('Unable to share. Please try again.');
+          toast.error('Unable to share. Please try again.');
         }
       }
     } else {
       try {
         await navigator.clipboard.writeText(url);
-        alert('Product link copied to clipboard!');
+        toast.success('Product link copied to clipboard!');
       } catch (error) {
-        alert('Unable to copy link. Please try again.');
+        toast.error('Unable to copy link. Please try again.');
       }
     }
   };
@@ -267,7 +267,7 @@ const BoomBoxPage = () => {
 
     const handleWishlistToggle = async () => {
       if (!user) {
-        alert('Please log in to add items to wishlist');
+        toast.error('Please log in to add items to wishlist');
         return;
       }
 
@@ -291,7 +291,7 @@ const BoomBoxPage = () => {
             createdAt: new Date().toISOString()
           });
           setIsInWishlist(true);
-          alert('Product added to wishlist!');
+          toast.success('Product added to wishlist!');
         } else {
           const userData = userDoc.data();
           const currentWishlist = userData.wishlist || [];
@@ -302,18 +302,18 @@ const BoomBoxPage = () => {
               wishlist: updatedWishlist
             });
             setIsInWishlist(false);
-            alert('Product removed from wishlist!');
+            toast.error('Product removed from wishlist!');
           } else {
             await updateDoc(userDocRef, {
               wishlist: arrayUnion(wishlistItem)
             });
             setIsInWishlist(true);
-            alert('Product added to wishlist!');
+            toast.success('Product added to wishlist!');
           }
         }
       } catch (error) {
         console.error('Error updating wishlist:', error);
-        alert('Failed to update wishlist. Please try again.');
+        toast.error('Failed to update wishlist. Please try again.');
       } finally {
         setAddingToWishlist(false);
       }

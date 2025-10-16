@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, ShoppingCart, Trash2, ArrowLeft, Loader2, Eye } from 'lucide-react';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-
+import { toast } from 'react-toastify';
 // Import your Firebase config - adjust path as needed
 import { db, auth } from '../Components/firebase';
 
@@ -137,8 +137,8 @@ const WishlistPage = () => {
         
         // Optionally remove from wishlist after adding to cart
         // await removeFromWishlist(wishlistItem.productId);
-        
-        alert('Item added to cart successfully!');
+
+        toast.success('Item added to cart successfully!');
       }
     } catch (err) {
       console.error('Error adding to cart:', err);
@@ -216,8 +216,8 @@ const WishlistPage = () => {
           
           setCartItems(updatedCart);
           setWishlistItems([]);
-          
-          alert('All items moved to cart successfully!');
+
+          toast.success('All items moved to cart successfully!');
         }
       } catch (err) {
         console.error('Error moving items to cart:', err);

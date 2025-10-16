@@ -624,7 +624,7 @@ const mobileMenuItemClass = "text-gray-200 hover:bg-gray-800 hover:text-red-500 
   <Link to="/products" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.15s'}}>
     Products
   </Link>
-  <Link to="/categories" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.2s'}}>
+  <Link to="/category" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.2s'}}>
     Categories
   </Link>
   <Link to="/contact" onClick={() => setIsMenuOpen(false)} className={`${mobileMenuItemClass} ${isMenuOpen ? 'animate-slideIn' : ''}`} style={{animationDelay: '0.25s'}}>

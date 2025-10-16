@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
 import { Share2, Copy, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const CategoryPage = () => {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -199,17 +200,17 @@ const shareProduct = async (product) => {
       console.log('Error sharing:', error);
       try {
         await navigator.clipboard.writeText(url);
-        alert('Product link copied to clipboard!');
+        toast.success('Product link copied to clipboard!');
       } catch (copyError) {
-        alert('Unable to share. Please try again.');
+        toast.error('Unable to share. Please try again.');
       }
     }
   } else {
     try {
       await navigator.clipboard.writeText(url);
-      alert('Product link copied to clipboard!');
+      toast.success('Product link copied to clipboard!');
     } catch (error) {
-      alert('Unable to copy link. Please try again.');
+      toast.error('Unable to copy link. Please try again.');
     }
   }
 };
@@ -236,7 +237,7 @@ const shareToFacebook = (product) => {
 
 const addToCart = async (product) => {
   if (!user) {
-    alert('Please log in to add items to cart');
+    toast.error('Please log in to add items to cart');
     return;
   }
 
@@ -256,7 +257,7 @@ const addToCart = async (product) => {
         currentCart[existingItemIndex].quantity += 1;
         await updateDoc(userDocRef, { cart: currentCart });
         setUserCartItems(currentCart);
-        alert('Cart updated successfully!');
+        toast.success('Cart updated successfully!');
       } else {
         // Add new item
         const cartItem = {
@@ -275,12 +276,12 @@ const addToCart = async (product) => {
         }, { merge: true });
         
         setUserCartItems([...currentCart, cartItem]);
-        alert('Product added to cart successfully!');
+        toast.success('Product added to cart successfully!');
       }
     }
   } catch (error) {
     console.error('Error adding to cart:', error);
-    alert('Failed to add product to cart. Please try again.');
+    toast.error('Failed to add product to cart. Please try again.');
   }
 };
 
@@ -522,7 +523,7 @@ useEffect(() => {
 
   const handleWishlistToggle = async () => {
     if (!user) {
-      alert('Please log in to add items to wishlist');
+      toast.error('Please log in to add items to wishlist');
       return;
     }
 
@@ -546,7 +547,7 @@ useEffect(() => {
           createdAt: new Date().toISOString()
         });
         setIsInWishlist(true);
-        alert('Product added to wishlist!');
+        toast.success('Product added to wishlist!');
       } else {
         const userData = userDoc.data();
         const currentWishlist = userData.wishlist || [];
@@ -557,18 +558,18 @@ useEffect(() => {
             wishlist: updatedWishlist
           });
           setIsInWishlist(false);
-          alert('Product removed from wishlist!');
+          toast.error('Product removed from wishlist!');
         } else {
           await updateDoc(userDocRef, {
             wishlist: arrayUnion(wishlistItem)
           });
           setIsInWishlist(true);
-          alert('Product added to wishlist!');
+          toast.success('Product added to wishlist!');
         }
       }
     } catch (error) {
       console.error('Error updating wishlist:', error);
-      alert('Failed to update wishlist. Please try again.');
+      toast.error('Failed to update wishlist. Please try again.');
     } finally {
       setAddingToWishlist(false);
     }

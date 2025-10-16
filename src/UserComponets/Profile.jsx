@@ -3,7 +3,7 @@ import { User, Mail, Phone, Calendar, Camera, Shield, User2 } from 'lucide-react
 import { useAuth } from '../Components/AuthContext';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../Components/firebase';
-
+import { toast } from 'react-toastify';
 const Profile = () => {
   const { currentUser } = useAuth();
   const userId = currentUser?.uid;
@@ -102,8 +102,8 @@ setProductRecommendations(prefs.productRecommendations ?? true);  // ADD THIS
       };
 
       await setDoc(userDocRef, profileData, { merge: true });
-      
-      alert('Profile updated successfully!');
+
+      toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
       setError('Failed to save profile. Please try again.');

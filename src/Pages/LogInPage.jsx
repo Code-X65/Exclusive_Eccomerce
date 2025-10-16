@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Image from '../assets/Images/Login.png';
 import { authService, getAuthErrorMessage } from '../Components/firebase'; // Import your firebase auth services
+import { toast } from 'react-toastify';
 
 const LogInPage = () => {
   const [email, setEmail] = useState('');
@@ -67,7 +68,7 @@ const LogInPage = () => {
     setLoading(true);
     try {
       await authService.resetPassword(email);
-      alert('Password reset email sent. Please check your inbox.');
+      toast.success('Password reset email sent. Please check your inbox.');
     } catch (err) {
       setError('Failed to send password reset email. Please try again.');
       console.error(err);
@@ -78,13 +79,15 @@ const LogInPage = () => {
 
   return (
     <>   
-      <div className='md:flex items-center gap-8'> 
-        <div className='flex-1 hidden md:block'>
+    <div className='h-full items-center bg-[url(https://www.transparenttextures.com/patterns/cubes.png)]'>
+      
+      <div className='md:flex  items-center '> 
+        <div className='flex-1 hidden md:block '>
           <img src={Image} alt="Login" />
         </div>
-        <div className='flex-1 flex flex-col gap-4 md:pl-20 p-4'>
-          <h4 className='text-3xl text-[#333] mt-4'>Login to Exclusive</h4>
-          <p className='text-[#333] text-sm font-semibold'>Enter your details below</p>
+        <div className='flex-1 flex flex-col gap-4 md:pl-20 p-4  rounded-lg '>
+          <h4 className='text-3xl text-gray-50 mt-4'>Login to Exclusive</h4>
+          <p className='text-gray-300 text-sm font-semibold'>Enter your details below</p>
           
           {error && (
             <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-sm'>
@@ -97,7 +100,7 @@ const LogInPage = () => {
               <input 
                 type="email" 
                 placeholder='Email Address' 
-                className='border-b-2 border-gray-300 max-w-sm w-full py-3 px-1 outline-none focus:border-red-500 animation-1000 duration-800 ease-in-out'
+                className='border-b-2 border-gray-300 max-w-sm w-full py-3 px-1 outline-none focus:border-red-500 animation-1000 duration-800 ease-in-out text-gray-50'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required 
@@ -106,7 +109,7 @@ const LogInPage = () => {
               <input 
                 type="password" 
                 placeholder='Password' 
-                className='border-b-2 border-gray-300 max-w-sm w-full py-3 px-1 outline-none focus:border-red-500 animation-1000 duration-800 ease-in-out'
+                className='border-b-2 border-gray-300 max-w-sm w-full py-3 px-1 outline-none focus:border-red-500 animation-1000 duration-800 ease-in-out text-gray-50'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required 
@@ -137,7 +140,7 @@ const LogInPage = () => {
 
             <button 
               onClick={handleGoogleSignIn}
-              className='flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 w-full max-w-sm hover:bg-gray-50'
+              className='flex items-center justify-center gap-2 border border-gray-300 rounded-md py-2 px-4 w-full max-w-sm hover:bg-gray-500 text-gray-50 '
               disabled={loading}
             >
               <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -150,6 +153,7 @@ const LogInPage = () => {
           </div>
         </div>
       </div>
+    </div>
     </>
   );
 };

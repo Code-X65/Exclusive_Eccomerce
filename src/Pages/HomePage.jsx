@@ -8,6 +8,7 @@ import ProductExplore from '../Components/ProductExplore'
 import NewArrival from '../Components/NewArrival'
 import CompanyFeatures from '../Components/CompanyFeatures'
 import SmartWatchBanner from '../Components/SmartWatchBanner'
+import MobileAppBanner from '../Components/MobileAppBanner'
 
 const HomePage = () => {
   return (
@@ -19,6 +20,7 @@ const HomePage = () => {
       <BestSelling />
       <Categories />
       <NewArrival  />
+      <MobileAppBanner />
       <CompanyFeatures />
     </div>
   )

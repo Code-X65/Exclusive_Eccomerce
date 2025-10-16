@@ -154,7 +154,7 @@ const ContactPage = () => {
 
   return (
     <>
-      <div className='max-w-6xl mx-auto py-6 md:py-8 lg:py-10 px-4'>
+      <div className='max-w-6xl mx-auto py-6 md:py-8 lg:py-10 px-2'>
         <div className='flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-10 items-center justify-center'>
           {/* Contact Info Card */}
           <div className='py-6 md:py-8 px-4 md:px-6 shadow-md font-[400] w-full max-w-[350px] lg:max-w-[270px] rounded-md bg-white'>
@@ -209,7 +209,7 @@ const ContactPage = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className='shadow-md rounded-md px-3 md:px-4 py-4 md:py-5'>
+            <form onSubmit={handleSubmit} className='shadow-md rounded-md px-3 md:px-2 py-4 md:py-5'>
               {/* Form Inputs */}
               <div className='flex flex-col md:flex-row gap-3 md:gap-4'>
                 <input 

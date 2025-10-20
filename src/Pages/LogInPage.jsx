@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Image from '../assets/Images/Login.png';
+import Image from '../assets/Images/authenticate.png';
 import { authService, getAuthErrorMessage } from '../Components/firebase'; // Import your firebase auth services
 import { toast } from 'react-toastify';
 

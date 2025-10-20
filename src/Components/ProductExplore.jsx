@@ -26,14 +26,86 @@ const [userCartItems, setUserCartItems] = useState([]);
 const [userWishlistItems, setUserWishlistItems] = useState([]);
 const categories = [
   'All',
-  'Smartphone',
-  'Smartwatch',
-  'Tablet',
-  'Game',
-  'Sounds ',
-  'Laptops',
-  'Home Appliances'
+  'smartphones',
+  'smartwatches',
+  'tablets',
+  'games',
+  'sounds',
+  'laptop',
+  'home_appliances'
 ];
+
+const categoryHierarchy = {
+  smartphones: {
+    label: 'SmartPhones',
+    subcategories: {
+      iphone_17: "iPhone 17 series",
+      iphone_16: "iPhone 16 series",
+      iphone_15: "iPhone 15 series",
+      iphone_14: "iPhone 14 series",
+      iphone_13: "iPhone 13 series",
+      iphone_12: "iPhone 12 series",
+      iphone_11: "iPhone 11 series",
+      samsung: "Samsung",
+      tecno: "Tecno",
+      itel: "Itel",
+      infinix: "Infinix",
+      redmi: "Redmi",
+      oppo: "Oppo"
+    }
+  },
+  smartwatches: {
+    label: 'Smartwatches',
+    subcategories: {
+      iwatch: "iWatch",
+      android: "Android"
+    }
+  },
+  tablets: {
+    label: 'Tablets',
+    subcategories: {
+      ipad: "iPad",
+      android: "Android"
+    }
+  },
+  games: {
+    label: 'Games',
+    subcategories: {
+      playstation: "Play Station",
+      xbox: "Xbox",
+      nintendo_switch: "Nintendo Switch",
+      Game_disc: "Game Disc",
+      gaming_headsets: "Gaming Headsets"
+    }
+  },
+  sounds: {
+    label: 'Sounds',
+    subcategories: {
+      boombox: "Boombox",
+      earbuds: "Earbuds",
+      headphones: "Headphones",
+      portable_speakers: "Portable Speakers",
+      bluetooth_speakers: "Bluetooth Speakers",
+      microphones: "Microphones"
+    }
+  },
+  laptop: {
+    label: 'Laptop',
+    subcategories: {
+      macbook: "Mac Book",
+      windows: "Windows"
+    }
+  },
+  home_appliances: {
+    label: 'Home Appliances',
+    subcategories: {
+      kitchen: "Kitchen Appliances",
+      home: "Home Appliances",
+      power: "Power Appliances",
+      entertainment: "Entertainment Appliances"
+    }
+  }
+};
 
 const priceRanges = [
   { label: 'All', min: 0, max: Infinity },
@@ -76,21 +148,14 @@ const filteredProducts = shuffledProducts.filter(product => {
   
   // Category filter
   const categoryMatch = selectedCategory === 'All' || 
-    (selectedCategory === 'Gaming' && (product.name?.includes('Gamepad') || product.name?.includes('Gaming') || product.category === 'gaming')) || 
-    (selectedCategory === 'Smartphone' && (product.name?.includes('Gamepad') || product.name?.includes('Smartphone') || product.category === 'smartphone'))
-     ||
-    (selectedCategory === 'Electronics' && (product.name?.includes('Keyboard') || product.name?.includes('Monitor') || product.category === 'smartphone' || product.category === 'accessory')) ||
-    (selectedCategory === 'Furniture' && product.name?.includes('Chair')) ||
-    (selectedCategory === 'Accessories' && (product.name?.includes('Gamepad') || product.name?.includes('Keyboard') || product.category === 'accessory')) ||
-    (selectedCategory === 'Monitors' && product.name?.includes('Monitor')) ||
-    (selectedCategory === 'Keyboards' && product.name?.includes('Keyboard'));
+    product.category?.toLowerCase() === selectedCategory.toLowerCase();
   
   // Price filter
   const priceRange = priceRanges.find(range => range.label === selectedPriceRange);
   const priceMatch = product.salePrice >= priceRange.min && product.salePrice <= priceRange.max;
   
   return categoryMatch && priceMatch;
-});   
+});  
 const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 const startIndex = (currentPage - 1) * productsPerPage;
 const endIndex = startIndex + productsPerPage;
@@ -186,17 +251,14 @@ const addToCart = async (product) => {
       const userData = userDoc.data();
       const currentCart = userData.cart || [];
       
-      // Find existing item
       const existingItemIndex = currentCart.findIndex(item => item.productId === product.id);
       
       if (existingItemIndex !== -1) {
-        // Update quantity of existing item
         currentCart[existingItemIndex].quantity += 1;
         await updateDoc(userDocRef, { cart: currentCart });
         setUserCartItems(currentCart);
         toast.success('Cart updated successfully!');
       } else {
-        // Add new item
         const cartItem = {
           productId: product.id,
           name: product.name,
@@ -296,28 +358,28 @@ const Sidebar = () => (
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-3 text-white">Categories</h3>
         <div className="space-y-2">
-          {categories.map(category => (
-    <button
-  key={category}
-  onClick={() => {
-    setSelectedCategory(category);
-    setSidebarOpen(false);
-    // Navigate to category route
-    if (category === 'All') {
-      navigate('/products');
-    } else {
-      navigate(`/products/${category.toLowerCase()}`);
-    }
-  }}
-  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-    selectedCategory === category 
-      ? 'bg-red-500 text-white' 
-      : 'text-gray-300 hover:bg-gray-800'
-  }`}
->
-  {category}
-</button>
-          ))}
+       {categories.map(category => (
+  <button
+    key={category}
+    onClick={() => {
+      setSelectedCategory(category);
+      setSidebarOpen(false);
+      // Navigate to category route
+      if (category === 'All') {
+        navigate('/products');
+      } else {
+        navigate(`/products/${category.toLowerCase()}`);
+      }
+    }}
+    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+      selectedCategory === category 
+        ? 'bg-red-500 text-white' 
+        : 'text-gray-300 hover:bg-gray-800'
+    }`}
+  >
+    {categoryHierarchy[category]?.label || category}
+  </button>
+))}
         </div>
       </div>
 
@@ -1007,9 +1069,13 @@ return (
         Found {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''}
       </p>
     )}
-    {selectedCategory !== 'All' && (
-      <p className="text-gray-400 text-sm sm:text-base">Category: <span className="font-medium text-red-400">{selectedCategory}</span></p>
-    )}
+   {selectedCategory !== 'All' && (
+  <p className="text-gray-400 text-sm sm:text-base">
+    Category: <span className="font-medium text-red-400">
+      {categoryHierarchy[selectedCategory]?.label || selectedCategory}
+    </span>
+  </p>
+)}
   </div>
   
   {searchQuery && (

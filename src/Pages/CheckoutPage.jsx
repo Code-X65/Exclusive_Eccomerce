@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Loader2, ShoppingBag, MapPin, CreditCard, Shield, User, Mail, Phone, CheckCircle, AlertTriangle } from 'lucide-react';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  addDoc, 
+  collection, 
+  serverTimestamp 
+} from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 // Import your Firebase config - adjust path as needed
@@ -406,34 +413,47 @@ const handlePaymentSuccess = async (response) => {
     setProcessing(true);
     setError('');
 
-    // Create order in Firestore
-   const orderData = {
-  userId: user.uid,
-  items: cartItems,
-  shippingInfo,
-  paymentInfo: {
-    method: paymentMethod,
-    reference: response.reference,
-    status: 'completed'
-  },
-  orderSummary: {
-    subtotal,
-    shipping,
-    total
-  },
-  status: 'processing',
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp()
-};
+    const orderData = {
+      userId: user.uid,
+      items: cartItems,
+      shippingInfo,
+      paymentInfo: {
+        method: paymentMethod,
+        reference: response.reference,
+        status: 'completed'
+      },
+      orderSummary: {
+        subtotal,
+        shipping,
+        total
+      },
+      status: 'processing',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
 
     // Save order to Firestore
     const orderRef = await addDoc(collection(db, 'orders'), orderData);
     
-    // Add the order ID to the order data for email
     const orderDataWithId = {
       ...orderData,
       orderId: orderRef.id
     };
+
+    // NEW: Update product stock for each item in the order
+    for (const item of cartItems) {
+      const productRef = doc(db, 'products', item.productId);
+      const productDoc = await getDoc(productRef);
+      
+      if (productDoc.exists()) {
+        const currentStock = productDoc.data().stockQuantity || 0;
+        const newStock = Math.max(0, currentStock - item.quantity);
+        
+        await updateDoc(productRef, {
+          stockQuantity: newStock
+        });
+      }
+    }
 
     // Send order confirmation email
     try {
@@ -444,18 +464,15 @@ const handlePaymentSuccess = async (response) => {
         console.log('Order confirmation email sent successfully');
       } else {
         console.warn('Failed to send order confirmation email:', emailResult.error);
-        // Don't fail the entire order process if email fails
       }
     } catch (emailError) {
       console.error('Error sending order confirmation email:', emailError);
-      // Continue with order completion even if email fails
     }
     
     // Clear user's cart
     const userDocRef = doc(db, 'users', user.uid);
     await updateDoc(userDocRef, { cart: [] });
 
-    // Update local state
     setCartItems([]);
     setSuccess(true);
     setCurrentStep(3);
@@ -467,6 +484,7 @@ const handlePaymentSuccess = async (response) => {
     setProcessing(false);
   }
 };
+
 
   // Handle checkout process
   const handleCheckout = async () => {

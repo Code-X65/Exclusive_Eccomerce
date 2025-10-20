@@ -9,7 +9,7 @@ export default defineConfig({
   ],
    server: {
     host: '0.0.0.0',
-    port: 5173, // Vite's default port
+    port: 8000, // Vite's default port
   },
   base: '/Exclusive_Eccomerce/',
 })

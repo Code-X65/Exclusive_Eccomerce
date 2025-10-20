@@ -124,7 +124,7 @@ export default function MobileAppBanner() {
       .float-animation { animation: float 3s ease-in-out infinite; }
     `}</style>,
     <div className="bg-gray-800 py-6 px-4 sm:px-6 lg:px-8 ">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center justify-center">
           
           <div className="text-white space-y-6">
@@ -172,18 +172,18 @@ export default function MobileAppBanner() {
                 Be the first to know when we launch:
               </p>
               {!isSubmitted ? (
-                <div className="flex gap-3">
+                <div className="md:flex gap-3">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Enter your email"
-                    className="flex-1 px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-700"
+                    className="flex-1 px-4 py-3 rounded-lg bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-700 w-full"
                   />
                   <button
                     onClick={handleNotifyMe}
-                    className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-500 transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-500 transition-colors flex items-center gap-2 whitespace-nowrap max-md:mt-4 max-md:"
                   >
                     <Bell size={18} />
                     Notify Me

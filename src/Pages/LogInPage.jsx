@@ -124,7 +124,7 @@ const LogInPage = () => {
                   {loading ? 'Logging in...' : 'Log In'}
                 </button>
                 <p 
-                  className='text-red-500 hover:underline cursor-pointer hover:underline pb-1 animation-600 duration-800 ease-in-out'
+                  className='text-red-500 hover:underline cursor-pointer pb-1 animation-600 duration-800 ease-in-out'
                   onClick={handleForgotPassword}
                 >
                   Forgot Password?

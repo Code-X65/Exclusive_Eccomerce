@@ -109,10 +109,10 @@ const categoryHierarchy = {
 
 const priceRanges = [
   { label: 'All', min: 0, max: Infinity },
-  { label: '$0 - $100', min: 0, max: 100 },
-  { label: '$100 - $300', min: 100, max: 300 },
-  { label: '$300 - $500', min: 300, max: 500 },
-  { label: '$500+', min: 500, max: Infinity }
+  { label: '₦100 - ₦10,000', min: 100, max: 10000 },
+  { label: '₦10,000 - ₦50,000', min: 10000, max: 50000  },
+  { label: '₦50,000 - ₦200,000', min: 50000, max: 200000 },
+  { label: '₦200,000+', min: 200000, max: Infinity }
 ];
 
   // Countdown Timer State

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Heart, Eye, Phone, Watch, Tablet, Gamepad2, Speaker, Laptop, Refrigerator, Star, Filter, X, Grid3x3, List, Upload } from 'lucide-react';
+import { Heart, Eye, Phone, Watch, Tablet, Gamepad2, Speaker, Laptop, Refrigerator, Star, Filter, X, Grid3x3, List, Upload, Tablets } from 'lucide-react';
 import { collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db, auth } from '../Components/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 
 const CategoryPage = () => {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-  const [selectedCategory, setSelectedCategory] = useState('smartphone');
+  const [selectedCategory, setSelectedCategory] = useState('smartphones');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
 
 
@@ -26,7 +26,7 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
   const fileInputRef = useRef(null);
 
   const categoryHierarchy = {
-    smartphone: {
+    smartphones: {
       label: 'SmartPhones',
       subcategories: {
         iphone_17: "iPhone 17 series",
@@ -44,21 +44,21 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
         oppo: "Oppo"
       }
     },
-    smartwatch: {
+    smartwatches: {
       label: 'Smartwatches',
       subcategories: {
         iwatch: "iWatch",
         android: "Android"
       }
     },
-    tablet: {
+    Tablets: {
       label: 'Tablets',
       subcategories: {
         ipad: "iPad",
         android: "Android"
       }
     },
-    game: {
+    games: {
       label: 'Games',
       subcategories: {
         playstation: "Play Station",
@@ -133,25 +133,25 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
 const BrowserCategory = [
   { 
     icon: <Phone />, 
-    title: "smartphone",  // changed from smartphones
+    title: "smartphones",  // changed from smartphones
     heroTitle: "Latest Smartphones",
     heroDescription: "Discover cutting-edge technology in the palm of your hand",
   },
   { 
     icon: <Watch />, 
-    title: "smartwatch",  // changed from smartwatches
+    title: "smartwatches",  // changed from smartwatches
     heroTitle: "Smart Wearables",
     heroDescription: "Track your fitness and stay connected on the go",
   },
   { 
     icon: <Tablet />, 
-    title: "tablet",  // changed from tablets
+    title: "tablets",  // changed from tablets
     heroTitle: "Powerful Tablets",
     heroDescription: "Portable performance for work and entertainment",
   },
   { 
     icon: <Gamepad2 />, 
-    title: "game",  // changed from games
+    title: "games",  // changed from games
     heroTitle: "Gaming Consoles",
     heroDescription: "Experience next-gen gaming like never before",
   },

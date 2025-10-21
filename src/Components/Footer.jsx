@@ -397,16 +397,16 @@ useEffect(() => {
     </div>
     
     <div className="flex gap-4 mt-2 sm:mt-0 lg:mt-4">
-      <a href="#" className="text-white hover:text-gray-300 transition-colors">
+      <a href="https://facebook.com" className="text-white hover:text-blue-500 transition-colors">
         <Facebook size={20} />
       </a>
-      <a href="#" className="text-white hover:text-gray-300 transition-colors">
+      <a href="https://twitter.com" className="text-white hover:text-blue-300 transition-colors">
         <Twitter size={20} />
       </a>
-      <a href="#" className="text-white hover:text-gray-300 transition-colors">
+      <a href="https://instagram.com" className="text-white hover:text-red-500 transition-colors">
         <Instagram size={20} />
       </a>
-      <a href="#" className="text-white hover:text-gray-300 transition-colors">
+      <a href="https://linkedin.com" className="text-white hover:text-blue-700 transition-colors">
         <Linkedin size={20} />
       </a>
     </div>

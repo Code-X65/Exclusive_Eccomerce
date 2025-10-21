@@ -696,7 +696,7 @@ useEffect(() => {
           <TimerDisplay />
 
           {/* Navigation Buttons */}
-          <div className="flex gap-2 ml-auto sm:ml-0 hidden">
+          <div className=" gap-2 ml-auto sm:ml-0 hidden">
             <button 
               className="p-1 sm:p-2 border border-gray-700 rounded-full hover:bg-gray-800 text-gray-300"
               onClick={handlePrevious}

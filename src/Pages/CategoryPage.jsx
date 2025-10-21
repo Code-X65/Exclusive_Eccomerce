@@ -8,6 +8,10 @@ import { Share2, Copy, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+// Images
+import smartphone1 from '../assets/Category/phone01.jpg';
+import smartphone2 from '../assets/Category/phone02.webp';
+
 const CategoryPage = () => {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [selectedCategory, setSelectedCategory] = useState('smartphones');
@@ -68,7 +72,7 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
         gaming_headsets: "Gaming Headsets"
       }
     },
-    sound: {
+    sounds: {
       label: 'Sounds',
       subcategories: {
         boombox: "Boombox",
@@ -99,8 +103,8 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
 
   const categoryImages = {
     smartphone: [
-      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200',
-      'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExODFzd2RhMmNkYXd6aHl3YWpmbWlsaDh1dHU4ejZ4OGtibGZpajhlcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lRdYpyYmtvUjqrqkhL/giphy.gif'
+      smartphone1,
+      smartphone2
     ],
     smartwatch: [
       'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExemh0eTl6ams1cngyOTVxbTVhbm14NzloeXY0cThmemFpejJrZXA1eCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ScHXTFTxkA5YA/200.webp',
@@ -114,7 +118,7 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
       'https://images.unsplash.com/photo-1486401899868-0e435ed85128?w=1200',
       'https://images.unsplash.com/photo-1592155931584-901ac15763e3?w=1200'
     ],
-    sound: [
+    sounds: [
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200',
       'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1200'
     ],
@@ -124,7 +128,7 @@ const [userWishlistItems, setUserWishlistItems] = useState([]);
     ],
     home_appliance: [
       'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=1200',
-      'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=1200'
+      'https://images.unsplash.com/photo- 1556911220-bff31c812dba?w=1200'
     ]
   };
 
@@ -157,7 +161,7 @@ const BrowserCategory = [
   },
   { 
     icon: <Speaker />, 
-    title: "sound",  // changed from sounds
+    title: "sounds",  // changed from sounds
     heroTitle: "Premium Audio",
     heroDescription: "Immerse yourself in crystal-clear sound quality",
   },
@@ -802,7 +806,7 @@ useEffect(() => {
           </div>
 
           {/* Category Icons - Right side on mobile, left side on desktop */}
-          <div className="fixed sm:static right-2 top-1/2 -translate-y-1/2 sm:translate-y-0 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start z-20">
+          <div className="fixed md:static right-2 top-1/2 -translate-y-1/2 sm:translate-y-0 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start z-20">
             {BrowserCategory.map((category, index) => (
               <button
                 key={index}

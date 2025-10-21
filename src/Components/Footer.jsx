@@ -364,10 +364,10 @@ useEffect(() => {
           <div className="w-full">
             <h3 className="font-bold text-base md:text-lg mb-3 md:mb-4">Quick Link</h3>
             <div className="text-xs md:text-sm space-y-2">
-              <div><a href="#" className="hover:underline hover:text-gray-300 transition-colors">Privacy Policy</a></div>
-              <div><a href="#" className="hover:underline hover:text-gray-300 transition-colors">Terms Of Use</a></div>
-              <div><a href="#" className="hover:underline hover:text-gray-300 transition-colors">FAQ</a></div>
-              <Link to="/contact"><div><a href="#" className="hover:underline hover:text-gray-300 transition-colors">Contact</a></div></Link>
+              <div><Link href="#" className="hover:underline hover:text-gray-300 transition-colors">Privacy Policy</Link></div>
+              <div><Link href="#" className="hover:underline hover:text-gray-300 transition-colors">Terms Of Use</Link></div>
+              <div><Link href="#" className="hover:underline hover:text-gray-300 transition-colors">FAQ</Link></div>
+              <div><Link to="/contact" className="hover:underline hover:text-gray-300 transition-colors">Contact</Link></div>
             </div>
           </div>
 

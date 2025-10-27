@@ -806,7 +806,7 @@ useEffect(() => {
           </div>
 
         {/* Category Icons - Left side on mobile, left side on desktop */}
-<div className="fixed md:static left-2 top-1/2 -translate-y-1/2 sm:translate-y-0 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start z-20">
+<div className="fixed md:static right-2 top-1/2 -translate-y-1/2 sm:translate-y-0 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 justify-center sm:justify-start z-50">
             {BrowserCategory.map((category, index) => (
               <button
                 key={index}
